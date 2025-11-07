@@ -25,7 +25,17 @@
       "Bash(while read f)",
       "Bash(git init:*)",
       "Bash(.gitignore)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(ping:*)",
+      "Bash(git remote:*)",
+      "Bash(timeout:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
