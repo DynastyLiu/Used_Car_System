@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block title %}实名认证 - 二手车集市{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-shield me-2"></i>实名认证
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- 认证状态显示 -->
+                    <div id="auth-status-container"></div>
+
+                    <!-- 认证表单 -->
+                    <div id="auth-form-container" style="display: none;">
+                        <form id="verification-form" enctype="multipart/form-data">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                为了保障交易安全，请完成实名认证。所有信息将严格保密，仅用于身份验证。
+                            </div>
+
+                            <div class="mb-4">
+                                <h5 class="text-primary">
+                                    <i class="fas fa-id-card me-2"></i>身份认证信息
+                                </h5>
+
+                                <div class="mb-3">
+                                    <label for="id-number" class="form-label">身份证号码<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="id-number" name="id_number"
+                                           placeholder="请输入18位身份证号码" maxlength="18" required>
+                                    <div class="form-text">身份证号码将用于实名认证，请确保与实际身份证一致</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id-front-image" class="form-label">身份证正面照片<span class="text-danger">*</span></label>
+                                        <input type="file" class="form-control" id="id-front-image" name="id_front_image"
+                                               accept="image/*" required>
+                                        <div class="form-text">请上传清晰的身份证正面照片</div>
+                                        <div id="id-front-preview" class="mt-2" style="max-width: 100%; max-height: 200px; display: none;">
+                                            <img src="" alt="身份证正面预览" class="img-fluid border rounded">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id-back-image" class="form-label">身份证反面照片<span class="text-danger">*</span></label>
+                                        <input type="file" class="form-control" id="id-back-image" name="id_back_image"
+                                               accept="image/*" required>
+                                        <div class="form-text">请上传清晰的身份证反面照片</div>
+                                        <div id="id-back-preview" class="mt-2" style="max-width: 100%; max-height: 200px; display: none;">
+                                            <img src="" alt="身份证反面预览" class="img-fluid border rounded">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 卖家认证部分 -->
+                            <div id="seller-auth-section" class="mb-4" style="display: none;">
+                                <h5 class="text-primary">
+                                    <i class="fas fa-store me-2"></i>卖家认证信息
+                                </h5>
+                                <p class="text-muted">如果您计划销售车辆，需要提供银行账户信息用于资金结算。</p>
+
+                                <div class="mb-3">
+                                    <label for="bank-account-name" class="form-label">银行账户名 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="bank-account-name" name="bank_account_name"
+                                           placeholder="请输入银行卡开户行名称" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="bank-card-number" class="form-label">银行卡号 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="bank-card-number" name="bank_card_number"
+                                           placeholder="请输入银行卡号" required>
+                                    <div class="form-text">请确保银行卡号与身份信息一致，用于销售车辆资金结算</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="bank-name" class="form-label">开户行名称 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="bank-name" name="bank_name"
+                                           placeholder="例如：中国工商银行" required>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <label class="form-check-label me-3">
+                                        <input type="checkbox" class="form-check-input" id="become-seller">
+                                        我计划成为卖家，需要卖家认证权限
+                                    </label>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-secondary" onclick="window.location.href='/profile/'">
+                                        取消
+                                    </button>
+                                    <button type="submit" class="btn btn-primary ms-2">
+                                        <i class="fas fa-paper-plane me-2"></i>提交认证
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.verification-status {
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.status-unverified {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.status-pending {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+.status-verified {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.image-preview {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 4px;
+}
+</style>
+
+<script>
+let currentAuthStatus = null;
+let currentAuthData = null;
+
+async function loadAuthStatus() {
+    try {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch('/api/users/real-name-auth/', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        });
+
+        if (response.status === 401) {
+            showToast('请先登录后再进行实名认证', 'error');
+            renderAuthStatus({ real_name_auth_status: 'unverified' });
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        currentAuthData = data;
+        currentAuthStatus = data.real_name_auth_status || 'unverified';
+        if (!data.real_name_auth_status) {
+            data.real_name_auth_status = 'unverified';
+        }
+        renderAuthStatus(data);
+    } catch (error) {
+        console.error('获取认证状态失败:', error);
+        showToast(`获取认证状态失败: ${error.message}`, 'error');
+        renderAuthStatus({ real_name_auth_status: 'unverified', id_number: null });
+    }
+}
+
+function showToast(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+        color: white;
+        border-radius: 4px;
+        z-index: 10000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    `;
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.style.opacity = '0';
+        alertDiv.style.transition = 'opacity 0.3s';
+        setTimeout(() => alertDiv.remove(), 300);
+    }, 3000);
+}
+
+function renderAuthStatus(data) {
+    const container = document.getElementById('auth-status-container');
+    const formContainer = document.getElementById('auth-form-container');
+
+    const status = data.real_name_auth_status || 'unverified';
+
+    const statusConfig = {
+        'unverified': {
+            icon: 'fas fa-exclamation-triangle',
+            title: '未认证',
+            description: '请完成实名认证以获得完整平台权限，提高交易安全性。',
+            color: 'warning',
+            showForm: true
+        },
+        'pending': {
+            icon: 'fas fa-clock',
+            title: '审核中',
+            description: '您的实名认证正在审核中，请耐心等待审核结果。',
+            color: 'info',
+            showForm: false
+        },
+        'verified': {
+            icon: 'fas fa-check-circle',
+            title: '已认证',
+            description: '您的实名认证已通过审核，享有完整平台权限。',
+            color: 'success',
+            showForm: false
+        },
+        'rejected': {
+            icon: 'fas fa-times-circle',
+            title: '认证失败',
+            description: '您的实名认证未通过审核，请重新提交申请。',
+            color: 'danger',
+            showForm: true
+        }
+    };
+
+    const config = statusConfig[status] || statusConfig['unverified'];
+
+    container.innerHTML = `
+        <div class="verification-status status-${status}">
+            <div class="d-flex align-items-center">
+                <i class="${config.icon} fa-2x me-3"></i>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1">${config.title}</h5>
+                    <p class="mb-0">${config.description}</p>
+                    ${data.id_number ? `<p class="mb-0 mt-2"><strong>认证身份证号</strong> ${data.id_number.replace(/(\d{6})\d{8}(\d{4})/, '$1********$2')}</p>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    formContainer.style.display = config.showForm ? 'block' : 'none';
+
+    if (status === 'verified') {
+        renderBankInfo(data);
+    }
+}
+
+function renderBankInfo(data) {
+    const container = document.getElementById('auth-status-container');
+    const hasBankInfo = data.bank_account_name || data.bank_name || data.bank_card_number;
+
+    if (!hasBankInfo) {
+        return;
+    }
+
+    const maskedCard = data.bank_card_number
+        ? data.bank_card_number.replace(/(\d{4})\d{8}(\d{4})/, '$1********$2')
+        : '未提供';
+
+    container.innerHTML += `
+        <div class="mt-3 p-3 bg-light rounded">
+            <h6><i class="fas fa-university me-2"></i>银行信息</h6>
+            <p class="mb-1"><strong>账户名：</strong> ${data.bank_account_name || '未提供'}</p>
+            <p class="mb-1"><strong>开户行：</strong> ${data.bank_name || '未提供'}</p>
+            <p class="mb-0"><strong>银行卡号：</strong> ${maskedCard}</p>
+        </div>
+    `;
+}
+
+
+// 表单提交处理
+document.getElementById('verification-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    const idNumber = formData.get('id_number');
+    if (!validateIdNumber(idNumber)) {
+        showToast('请输入正确的身份证号码', 'error');
+        return;
+    }
+
+    const frontImage = document.getElementById('id-front-image').files[0];
+    const backImage = document.getElementById('id-back-image').files[0];
+
+    if (frontImage && frontImage.size > 5 * 1024 * 1024) {
+        showToast('身份证正面照片不能超过 5MB', 'error');
+        return;
+    }
+
+    if (backImage && backImage.size > 5 * 1024 * 1024) {
+        showToast('身份证反面照片不能超过 5MB', 'error');
+        return;
+    }
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+
+    try {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>提交中...';
+        submitBtn.disabled = true;
+
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch('/api/users/real-name-auth/', {
+            method: 'POST',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: formData
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(result.detail || '提交失败，请稍后再试');
+        }
+
+        showToast('实名认证提交成功，请等待审核', 'success');
+
+        if (document.getElementById('become-seller').checked) {
+            const sellerFormData = new FormData();
+            sellerFormData.append('bank_account_name', formData.get('bank_account_name'));
+            sellerFormData.append('bank_card_number', formData.get('bank_card_number'));
+            sellerFormData.append('bank_name', formData.get('bank_name'));
+
+            const sellerResponse = await fetch('/api/users/seller-auth/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: sellerFormData
+            });
+
+            const sellerResult = await sellerResponse.json().catch(() => ({}));
+
+            if (!sellerResponse.ok) {
+                throw new Error(sellerResult.detail || '卖家认证提交失败');
+            }
+
+            showToast('卖家认证信息已提交', 'success');
+        }
+
+        await loadAuthStatus();
+    } catch (error) {
+        console.error('提交认证失败:', error);
+        showToast(error.message || '提交认证失败，请重试', 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+// 身份证号码验证
+function validateIdNumber(idNumber) {
+    const regex = /^[1-9]\d{5}(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/;
+    return regex.test(idNumber);
+}
+
+// 显示/隐藏卖家认证部分
+document.getElementById('become-seller').addEventListener('change', function() {
+    const sellerSection = document.getElementById('seller-auth-section');
+    const bankInputs = sellerSection.querySelectorAll('input[required]');
+
+    if (this.checked) {
+        sellerSection.style.display = 'block';
+        bankInputs.forEach(input => input.required = true);
+    } else {
+        sellerSection.style.display = 'none';
+        bankInputs.forEach(input => {
+            input.required = false;
+            input.value = '';
+        });
+    }
+});
+
+// 图片预览功能
+document.getElementById('id-front-image').addEventListener('change', function() {
+    previewImage(this, 'id-front-preview');
+});
+
+document.getElementById('id-back-image').addEventListener('change', function() {
+    previewImage(this, 'id-back-preview');
+});
+
+function previewImage(input, previewId) {
+    const file = input.files[0];
+    const preview = document.getElementById(previewId);
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.querySelector('img').src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+// 页面加载时获取认证状态
+document.addEventListener('DOMContentLoaded', loadAuthStatus);
+</script>
+{% endblock %}

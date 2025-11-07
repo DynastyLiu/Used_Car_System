@@ -1,0 +1,1036 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}我的钱包 - 二手车集市管理系统{% endblock %}
+
+{% block content %}
+<style>
+.wallet-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.balance-card {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.balance-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+
+.balance-amount {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    font-family: 'Courier New', monospace;
+}
+
+.balance-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.btn-recharge {
+    background: white;
+    color: #007bff;
+}
+
+.btn-recharge:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.btn-set-password {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-set-password:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.wallet-info {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.wallet-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.wallet-info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+}
+
+.password-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.password-set {
+    background: #d4edda;
+    color: #155724;
+}
+
+.password-not-set {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.transactions-section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.transactions-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.transaction-item:hover {
+    background: #f9f9f9;
+}
+
+.transaction-info {
+    flex: 1;
+}
+
+.transaction-type {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.transaction-time {
+    font-size: 12px;
+    color: #999;
+}
+
+.transaction-amount {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: right;
+}
+
+.transaction-amount.debit {
+    color: #dc3545;
+}
+
+.transaction-amount.credit {
+    color: #28a745;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close {
+    font-size: 28px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+.password-input-container {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 40px;
+    cursor: pointer;
+    color: #666;
+    font-size: 18px;
+    user-select: none;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+    padding: 10px 24px;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+    padding: 10px 24px;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.info-message {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: block;
+    border-left: 4px solid #17a2b8;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .balance-card {
+        padding: 25px;
+    }
+
+    .balance-amount {
+        font-size: 36px;
+    }
+
+    .balance-actions {
+        flex-direction: column;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+}
+</style>
+
+<div class="wallet-container">
+    <h1 class="page-title">我的钱包</h1>
+
+    <!-- 余额卡片 -->
+    <div class="balance-card">
+        <div class="balance-label">账户余额</div>
+        <div class="balance-amount">¥<span id="walletBalance" data-wallet-balance>0.00</span></div>
+        <div class="balance-actions">
+            <button class="btn btn-recharge" onclick="openRechargeModal()">充值</button>
+            <button class="btn btn-set-password" id="passwordBtn" onclick="handlePasswordBtnClick()">设置交易密码</button>
+        </div>
+    </div>
+
+    <!-- 钱包信息 -->
+    <div class="wallet-info">
+        <div class="wallet-info-item">
+            <span class="info-label">钱包状态</span>
+            <span class="info-value" style="color: #28a745;">✓ 已激活</span>
+        </div>
+        <div class="wallet-info-item">
+            <span class="info-label">交易密码</span>
+            <span class="password-status password-not-set" id="passwordStatus" data-has-password>未设置</span>
+        </div>
+        <div class="wallet-info-item">
+            <span class="info-label">冻结金额</span>
+            <span class="info-value">¥<span id="frozenBalance" data-wallet-frozen>0.00</span></span>
+        </div>
+    </div>
+
+    <!-- 交易记录 -->
+    <div class="transactions-section">
+        <h2 class="section-title">最近交易</h2>
+        <div class="transactions-list" id="transactionsList">
+            <div class="loading">
+                <span class="spinner"></span>加载中...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 设置密码模态框 -->
+<div class="modal" id="passwordModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>设置交易密码</span>
+            <span class="close" onclick="closePasswordModal()">&times;</span>
+        </div>
+        <div id="passwordMessages"></div>
+        <form id="passwordForm" onsubmit="setPaymentPassword(event)">
+            <div class="form-group">
+                <label class="form-label">交易密码（6位数字）</label>
+                <div class="password-input-container">
+                    <input type="password" id="newPassword" class="form-input" placeholder="请输入6位数字密码" maxlength="6" inputmode="numeric" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('newPassword')">👁️</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">确认密码</label>
+                <div class="password-input-container">
+                    <input type="password" id="confirmPassword" class="form-input" placeholder="请再次输入密码" maxlength="6" inputmode="numeric" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')">👁️</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePasswordModal()">取消</button>
+                <button type="submit" class="btn btn-primary">设置密码</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 修改密码模态框 -->
+<div class="modal" id="changePasswordModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>修改交易密码</span>
+            <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+        </div>
+        <div id="changePasswordMessages"></div>
+        <form id="changePasswordForm" onsubmit="changePaymentPassword(event)">
+            <div class="form-group">
+                <label class="form-label">当前交易密码（6位数字）</label>
+                <div class="password-input-container">
+                    <input type="password" id="currentPassword" class="form-input" placeholder="请输入当前交易密码" maxlength="6" inputmode="numeric" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('currentPassword')">👁️</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">新交易密码（6位数字）</label>
+                <div class="password-input-container">
+                    <input type="password" id="newPasswordForChange" class="form-input" placeholder="请输入新的6位数字密码" maxlength="6" inputmode="numeric" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('newPasswordForChange')">👁️</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">确认新密码</label>
+                <div class="password-input-container">
+                    <input type="password" id="confirmPasswordForChange" class="form-input" placeholder="请再次输入新密码" maxlength="6" inputmode="numeric" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('confirmPasswordForChange')">👁️</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">取消</button>
+                <button type="submit" class="btn btn-primary">确定修改交易密码</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 充值模态框 -->
+<div class="modal" id="rechargeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>钱包充值</span>
+            <span class="close" onclick="closeRechargeModal()">&times;</span>
+        </div>
+        <div id="rechargeMessages"></div>
+        <form id="rechargeForm" onsubmit="rechargeWallet(event)">
+            <div class="form-group">
+                <label class="form-label">充值金额（元）</label>
+                <input type="number" id="rechargeAmount" class="form-input" placeholder="请输入充值金额" step="0.01" min="1" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">支付方式</label>
+                <select id="paymentMethod" class="form-select" required>
+                    <option value="">-- 请选择支付方式 --</option>
+                    <option value="wechat">微信支付</option>
+                    <option value="alipay">支付宝</option>
+                    <option value="bank">银行卡</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">交易密码</label>
+                <div class="password-input-container">
+                    <input type="password" id="rechargePassword" class="form-input" placeholder="请输入交易密码" maxlength="6" inputmode="numeric" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('rechargePassword')">👁️</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeRechargeModal()">取消</button>
+                <button type="submit" class="btn btn-primary">立即充值</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const API_BASE_URL = '/api';
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 使用统一的钱包管理系统加载钱包信息
+    if (API && API.WalletManager) {
+        API.WalletManager.getWalletBalance().then(walletInfo => {
+            updateWalletUI(walletInfo);
+        }).catch(error => {
+            console.error('加载钱包信息失败:', error);
+            showError('无法加载钱包信息，请刷新页面重试');
+        });
+    }
+    loadTransactions();
+});
+
+// 加载钱包信息
+async function loadWalletInfo() {
+    try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = '/';
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/wallet/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'  // 强制浏览器不使用缓存，每次都从服务器获取最新数据
+        });
+
+        if (!response.ok) {
+            throw new Error('获取钱包信息失败');
+        }
+
+        const data = await response.json();
+        const balance = parseFloat(data.balance).toFixed(2);
+        const frozenBalance = parseFloat(data.frozen_balance).toFixed(2);
+
+        // 更新页面显示
+        document.getElementById('walletBalance').textContent = balance;
+        document.getElementById('frozenBalance').textContent = frozenBalance;
+
+        // 同步到localStorage，供其他页面使用
+        localStorage.setItem('walletBalance', balance);
+        localStorage.setItem('walletFrozenBalance', frozenBalance);
+        localStorage.setItem('walletLastUpdated', Date.now().toString());
+
+        // 更新密码状态
+        const passwordStatus = document.getElementById('passwordStatus');
+        const passwordBtn = document.getElementById('passwordBtn');
+        if (data.has_payment_password) {
+            passwordStatus.textContent = '已设置';
+            passwordStatus.className = 'password-status password-set';
+            passwordBtn.textContent = '修改交易密码';
+        } else {
+            passwordStatus.textContent = '未设置';
+            passwordStatus.className = 'password-status password-not-set';
+            passwordBtn.textContent = '设置交易密码';
+
+            // 首次访问时自动弹出密码设置框
+            setTimeout(() => {
+                openPasswordModal();
+                showMessage('passwordMessages',
+                    '⚠️ 为了保护您的账户安全，请立即设置6位数字交易密码',
+                    'info');
+            }, 800);
+        }
+
+    } catch (error) {
+        console.error('加载钱包信息失败:', error);
+        showMessage('errorMessage', '无法加载钱包信息，请刷新页面重试', 'error');
+    }
+}
+
+// 更新钱包UI（使用统一的钱包管理系统提供的数据）
+function updateWalletUI(walletInfo) {
+    const balance = walletInfo.balance.toFixed(2);
+    const frozenBalance = walletInfo.frozenBalance.toFixed(2);
+
+    // 更新页面显示
+    document.getElementById('walletBalance').textContent = balance;
+    document.getElementById('frozenBalance').textContent = frozenBalance;
+
+    // 更新密码状态
+    const passwordStatus = document.getElementById('passwordStatus');
+    const passwordBtn = document.getElementById('passwordBtn');
+    if (walletInfo.hasPassword) {
+        passwordStatus.textContent = '已设置';
+        passwordStatus.className = 'password-status password-set';
+        passwordBtn.textContent = '修改交易密码';
+    } else {
+        passwordStatus.textContent = '未设置';
+        passwordStatus.className = 'password-status password-not-set';
+        passwordBtn.textContent = '设置交易密码';
+
+        // 首次访问时自动弹出密码设置框
+        setTimeout(() => {
+            openPasswordModal();
+            showMessage('passwordMessages',
+                '⚠️ 为了保护您的账户安全，请立即设置6位数字交易密码',
+                'info');
+        }, 800);
+    }
+
+    console.log('钱包UI已更新:', walletInfo);
+}
+
+// 显示错误消息
+function showError(message) {
+    showMessage('errorMessage', message, 'error');
+}
+
+// 加载交易记录
+async function loadTransactions() {
+    try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/users/wallet/transactions/?page=1&page_size=10`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'  // 强制浏览器不使用缓存
+        });
+
+        if (!response.ok) {
+            throw new Error('获取交易记录失败');
+        }
+
+        const data = await response.json();
+        const list = document.getElementById('transactionsList');
+
+        if (!data.results || data.results.length === 0) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><p>暂无交易记录</p></div>';
+            return;
+        }
+
+        list.innerHTML = data.results.map(tx => {
+            const amount = parseFloat(tx.amount);
+            const isDebit = tx.transaction_type === 'purchase';
+            const sign = isDebit ? '-' : '+';
+            const amountClass = isDebit ? 'debit' : 'credit';
+
+            const typeText = {
+                'recharge': '钱包充值',
+                'purchase': '车辆购买',
+                'refund': '退款'
+            }[tx.transaction_type] || tx.transaction_type;
+
+            const date = new Date(tx.created_at);
+            const timeStr = date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            return `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-type">${typeText}</div>
+                        <div class="transaction-time">${timeStr}</div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">
+                        ${sign}¥${amount.toFixed(2)}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('加载交易记录失败:', error);
+        const list = document.getElementById('transactionsList');
+        list.innerHTML = '<div class="empty-state"><p>无法加载交易记录</p></div>';
+    }
+}
+
+// 打开设置密码模态框
+function openPasswordModal() {
+    document.getElementById('passwordModal').classList.add('active');
+    document.getElementById('passwordForm').reset();
+    clearMessages('passwordMessages');
+}
+
+// 关闭设置密码模态框
+function closePasswordModal() {
+    document.getElementById('passwordModal').classList.remove('active');
+    document.getElementById('passwordForm').reset();
+    clearMessages('passwordMessages');
+}
+
+// 处理密码按钮点击逻辑
+function handlePasswordBtnClick() {
+    const passwordStatus = document.getElementById('passwordStatus');
+
+    if (passwordStatus.textContent === '已设置') {
+        // 用户已设置密码，打开修改密码模态框
+        openChangePasswordModal();
+    } else {
+        // 用户未设置密码，打开设置密码模态框
+        openPasswordModal();
+    }
+}
+
+// 打开修改密码模态框
+function openChangePasswordModal() {
+    document.getElementById('changePasswordModal').classList.add('active');
+    document.getElementById('changePasswordForm').reset();
+    clearMessages('changePasswordMessages');
+}
+
+// 关闭修改密码模态框
+function closeChangePasswordModal() {
+    document.getElementById('changePasswordModal').classList.remove('active');
+    document.getElementById('changePasswordForm').reset();
+    clearMessages('changePasswordMessages');
+}
+
+// 打开充值模态框
+function openRechargeModal() {
+    document.getElementById('rechargeModal').classList.add('active');
+    document.getElementById('rechargeForm').reset();
+    clearMessages('rechargeMessages');
+}
+
+// 关闭充值模态框
+function closeRechargeModal() {
+    document.getElementById('rechargeModal').classList.remove('active');
+    document.getElementById('rechargeForm').reset();
+    clearMessages('rechargeMessages');
+}
+
+// 切换密码可见性
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+    } else {
+        input.type = 'password';
+    }
+}
+
+// 设置交易密码
+async function setPaymentPassword(event) {
+    event.preventDefault();
+
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const messagesDiv = document.getElementById('passwordMessages');
+
+    // 验证输入
+    if (!password || !confirmPassword) {
+        showMessage('passwordMessages', '请输入密码', 'error');
+        return;
+    }
+
+    if (!/^\d{6}$/.test(password)) {
+        showMessage('passwordMessages', '密码必须是6位数字', 'error');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showMessage('passwordMessages', '两次输入的密码不一致', 'error');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`${API_BASE_URL}/users/set-payment-password/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                password: password,
+                password_confirm: confirmPassword
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '设置密码失败');
+        }
+
+        showMessage('passwordMessages', '密码设置成功', 'success');
+        setTimeout(() => {
+            closePasswordModal();
+            loadWalletInfo();
+        }, 1500);
+
+    } catch (error) {
+        console.error('设置密码失败:', error);
+        showMessage('passwordMessages', error.message || '设置密码失败，请重试', 'error');
+    }
+}
+
+// 修改交易密码
+async function changePaymentPassword(event) {
+    event.preventDefault();
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPasswordForChange').value;
+    const confirmPassword = document.getElementById('confirmPasswordForChange').value;
+
+    // 验证输入
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showMessage('changePasswordMessages', '请填写所有密码字段', 'error');
+        return;
+    }
+
+    // 验证密码格式
+    if (!/^\d{6}$/.test(currentPassword)) {
+        showMessage('changePasswordMessages', '当前密码必须是6位数字', 'error');
+        return;
+    }
+
+    if (!/^\d{6}$/.test(newPassword)) {
+        showMessage('changePasswordMessages', '新密码必须是6位数字', 'error');
+        return;
+    }
+
+    if (!/^\d{6}$/.test(confirmPassword)) {
+        showMessage('changePasswordMessages', '确认新密码必须是6位数字', 'error');
+        return;
+    }
+
+    // 验证新密码与当前密码不同
+    if (currentPassword === newPassword) {
+        showMessage('changePasswordMessages', '新密码不能与当前密码相同', 'error');
+        return;
+    }
+
+    // 验证新密码与确认新密码相同
+    if (newPassword !== confirmPassword) {
+        showMessage('changePasswordMessages', '两次输入的新密码不一致', 'error');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`${API_BASE_URL}/users/change-payment-password/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_new_password: confirmPassword
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '修改密码失败');
+        }
+
+        showMessage('changePasswordMessages', '交易密码修改成功', 'success');
+        setTimeout(() => {
+            closeChangePasswordModal();
+            loadWalletInfo();
+        }, 1500);
+
+    } catch (error) {
+        console.error('修改密码失败:', error);
+        showMessage('changePasswordMessages', error.message || '修改密码失败，请重试', 'error');
+    }
+}
+
+// 充值钱包
+async function rechargeWallet(event) {
+    event.preventDefault();
+
+    const amount = document.getElementById('rechargeAmount').value;
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const password = document.getElementById('rechargePassword').value;
+
+    if (!amount || !paymentMethod || !password) {
+        showMessage('rechargeMessages', '请填写所有必填项', 'error');
+        return;
+    }
+
+    if (!/^\d{6}$/.test(password)) {
+        showMessage('rechargeMessages', '交易密码必须是6位数字', 'error');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`${API_BASE_URL}/users/wallet/recharge/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: parseFloat(amount),
+                payment_method: paymentMethod,
+                payment_password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || '充值失败');
+        }
+
+        const newBalance = data.new_balance.toFixed(2);
+        showMessage('rechargeMessages', `充值成功！新余额：¥${newBalance}`, 'success');
+
+        // 使用统一的钱包管理系统更新余额
+        if (API && API.WalletManager) {
+            API.WalletManager.updateWalletBalance(parseFloat(newBalance));
+        }
+
+        setTimeout(() => {
+            closeRechargeModal();
+            // 重新加载钱包信息
+            if (API && API.WalletManager) {
+                API.WalletManager.refreshWalletBalance().then(walletInfo => {
+                    updateWalletUI(walletInfo);
+                }).catch(error => {
+                    console.error('刷新钱包信息失败:', error);
+                });
+            }
+            loadTransactions();
+        }, 1500);
+
+    } catch (error) {
+        console.error('充值失败:', error);
+        showMessage('rechargeMessages', error.message || '充值失败，请重试', 'error');
+    }
+}
+
+// 显示消息
+function showMessage(containerId, message, type = 'success') {
+    const container = document.getElementById(containerId);
+    const messageEl = document.createElement('div');
+    messageEl.className = `${type}-message`;
+    messageEl.textContent = message;
+    messageEl.style.display = 'block';
+    container.innerHTML = '';
+    container.appendChild(messageEl);
+}
+
+// 清空消息
+function clearMessages(containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+}
+
+// 点击模态框外部关闭
+window.addEventListener('click', function(event) {
+    const passwordModal = document.getElementById('passwordModal');
+    const changePasswordModal = document.getElementById('changePasswordModal');
+    const rechargeModal = document.getElementById('rechargeModal');
+
+    if (event.target === passwordModal) {
+        closePasswordModal();
+    }
+    if (event.target === changePasswordModal) {
+        closeChangePasswordModal();
+    }
+    if (event.target === rechargeModal) {
+        closeRechargeModal();
+    }
+});
+</script>
+{% endblock %}

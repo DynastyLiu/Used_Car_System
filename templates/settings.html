@@ -1,0 +1,867 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}账户设置 - 二手车集市管理系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 900px;
+        margin: 30px auto;
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 30px;
+    }
+
+    .settings-sidebar {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+
+    .settings-sidebar .menu-item {
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+        transition: all 0.3s;
+        border-left: 3px solid transparent;
+    }
+
+    .settings-sidebar .menu-item:hover,
+    .settings-sidebar .menu-item.active {
+        background: #f0f8ff;
+        color: #007BFF;
+        border-left-color: #007BFF;
+    }
+
+    .settings-content {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    .settings-section {
+        display: none;
+    }
+
+    .settings-section.active {
+        display: block;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #007BFF;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: #007BFF;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .avatar-section {
+        display: flex;
+        align-items: flex-end;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #999;
+        overflow: hidden;
+    }
+
+    .avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-upload {
+        flex: 1;
+    }
+
+    .message {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .message.success {
+        display: block;
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+        display: block;
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .info-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: #666;
+        min-width: 150px;
+    }
+
+    .info-value {
+        color: #333;
+        flex: 1;
+    }
+
+    @media (max-width: 768px) {
+        .settings-container {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-sidebar {
+            position: static;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .settings-sidebar .menu-item {
+            margin-bottom: 0;
+            text-align: center;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .avatar-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- 设置菜单 -->
+    <div class="settings-sidebar">
+        <div class="menu-item active" onclick="showSection('general')">基本设置</div>
+        <div class="menu-item" onclick="showSection('privacy')">隐私设置</div>
+        <div class="menu-item" onclick="showSection('notification')">通知设置</div>
+        <div class="menu-item" onclick="showSection('security')">安全设置</div>
+    </div>
+
+    <!-- 设置内容 -->
+    <div class="settings-content">
+        <!-- 基本设置 -->
+        <div class="settings-section active" id="general">
+            <h2 class="section-title">基本设置</h2>
+            <div id="generalMessage" class="message"></div>
+
+            <!-- 头像上传 -->
+            <div class="avatar-section">
+                <div class="avatar-preview" id="avatarPreview">👤</div>
+                <div class="avatar-upload">
+                    <label class="form-label">更换头像</label>
+                    <input type="file" id="avatarInput" accept="image/*" class="form-control">
+                    <small style="color: #999; font-size: 12px; display: block; margin-top: 8px;">支持 JPG、PNG 格式，最大5MB</small>
+                </div>
+            </div>
+
+            <form id="generalForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">昵称</label>
+                        <input type="text" id="nickname" class="form-control" placeholder="请输入昵称" maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">性别</label>
+                        <select id="gender" class="form-control">
+                            <option value="">请选择</option>
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">出生日期</label>
+                        <input type="date" id="birthDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">所在地区</label>
+                        <input type="text" id="location" class="form-control" placeholder="例如：北京市朝阳区" maxlength="255">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">个人简介</label>
+                    <textarea id="bio" class="form-control" placeholder="介绍一下自己..." maxlength="500"></textarea>
+                    <small style="color: #999; font-size: 12px; display: block; margin-top: 8px;"><span id="bioCount">0</span>/500</small>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">保存设置</button>
+                    <button type="reset" class="btn btn-secondary">重置</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 隐私设置 -->
+        <div class="settings-section" id="privacy">
+            <h2 class="section-title">隐私设置</h2>
+            <div id="privacyMessage" class="message"></div>
+
+            <form id="privacyForm">
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="showPhone" class="form-control" style="width: auto;">
+                        <span>在个人资料中显示电话号码</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="showEmail" class="form-control" style="width: auto;">
+                        <span>在个人资料中显示邮箱地址</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="showLocation" class="form-control" style="width: auto;">
+                        <span>在个人资料中显示所在地区</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="allowMessages" class="form-control" style="width: auto;">
+                        <span>允许其他用户给我发送消息</span>
+                    </label>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">保存设置</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 通知设置 -->
+        <div class="settings-section" id="notification">
+            <h2 class="section-title">通知设置</h2>
+            <div id="notificationMessage" class="message"></div>
+
+            <form id="notificationForm">
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="emailNotifications" class="form-control" style="width: auto;">
+                        <span>接收邮件通知</span>
+                    </label>
+                    <small style="color: #999; display: block; margin-top: 8px;">订单状态、评论等重要信息</small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="smsNotifications" class="form-control" style="width: auto;">
+                        <span>接收短信通知</span>
+                    </label>
+                    <small style="color: #999; display: block; margin-top: 8px;">验证消息和订单确认</small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="promotionNotifications" class="form-control" style="width: auto;">
+                        <span>接收促销和优惠通知</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="systemNotifications" class="form-control" style="width: auto;">
+                        <span>接收系统通知</span>
+                    </label>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">保存设置</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 安全设置 -->
+        <div class="settings-section" id="security">
+            <h2 class="section-title">安全设置</h2>
+            <div id="securityMessage" class="message"></div>
+
+            <!-- 账户信息 -->
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">账户信息</h3>
+                <div class="info-item">
+                    <span class="info-label">用户名</span>
+                    <span class="info-value" id="username">加载中...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">邮箱</span>
+                    <span class="info-value" id="email">加载中...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">手机号</span>
+                    <span class="info-value" id="phone">加载中...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">账户状态</span>
+                    <span class="info-value" id="accountStatus">加载中...</span>
+                </div>
+            </div>
+
+            <!-- 修改密码 -->
+            <form id="passwordForm" style="max-width: 400px;">
+                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">修改密码</h3>
+                <div class="form-group">
+                    <label class="form-label">当前密码</label>
+                    <input type="password" id="currentPassword" class="form-control" placeholder="请输入当前密码">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">新密码</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="请输入新密码" minlength="8">
+                    <small style="color: #999; display: block; margin-top: 8px;">密码长度至少8位，需要包含大小写字母和数字</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="请再次输入新密码">
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">修改密码</button>
+                </div>
+            </form>
+
+            <!-- 删除账户 -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #dc3545;">危险操作</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    删除账户将永久删除您的所有信息，此操作无法撤销。
+                </p>
+                <button type="button" class="btn btn-danger" onclick="deleteAccount()">删除账户</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 显示指定的设置部分
+function showSection(sectionId) {
+    // 隐藏所有部分
+    document.querySelectorAll('.settings-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // 移除菜单项的 active 类
+    document.querySelectorAll('.settings-sidebar .menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 显示选中的部分和菜单项
+    document.getElementById(sectionId).classList.add('active');
+    event.target.classList.add('active');
+
+    // 如果是安全设置，加载账户信息
+    if (sectionId === 'security') {
+        loadAccountInfo();
+    }
+}
+
+// 加载账户信息
+async function loadAccountInfo() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/users/profile/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('获取信息失败');
+
+        const data = await response.json();
+        document.getElementById('username').textContent = data.username || '未设置';
+        document.getElementById('email').textContent = data.email || '未设置';
+        document.getElementById('phone').textContent = data.phone || '未设置';
+        document.getElementById('accountStatus').textContent = data.account_status === 'normal' ? '正常' : '异常';
+    } catch (error) {
+        console.error('加载账户信息失败:', error);
+        showMessage('security', '加载账户信息失败', 'error');
+    }
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadGeneralSettings();
+    loadPrivacySettings();
+    loadNotificationSettings();
+    loadAccountInfo();
+
+    // 基本设置表单提交
+    document.getElementById('generalForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveGeneralSettings();
+    });
+
+    // 隐私设置表单提交
+    document.getElementById('privacyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await savePrivacySettings();
+    });
+
+    // 通知设置表单提交
+    document.getElementById('notificationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveNotificationSettings();
+    });
+
+    // 密码修改表单提交
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await changePassword();
+    });
+
+    // 头像上传
+    document.getElementById('avatarInput').addEventListener('change', async (e) => {
+        await uploadAvatar(e);
+    });
+
+    // 个人简介字数统计
+    document.getElementById('bio').addEventListener('input', function() {
+        document.getElementById('bioCount').textContent = this.value.length;
+    });
+});
+
+// 加载基本设置
+async function loadGeneralSettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/users/profile/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('获取信息失败');
+
+        const data = await response.json();
+        document.getElementById('nickname').value = data.nickname || '';
+        document.getElementById('gender').value = data.gender || '';
+        document.getElementById('birthDate').value = data.birth_date || '';
+        document.getElementById('location').value = data.location || '';
+        document.getElementById('bio').value = data.bio || '';
+        document.getElementById('bioCount').textContent = (data.bio || '').length;
+
+        // 更新头像预览
+        if (data.avatar) {
+            document.getElementById('avatarPreview').innerHTML = `<img src="${data.avatar}" alt="头像">`;
+        } else {
+            const username = data.username || '';
+            document.getElementById('avatarPreview').textContent = username.charAt(0).toUpperCase() || '👤';
+        }
+    } catch (error) {
+        console.error('加载设置失败:', error);
+    }
+}
+
+// 保存基本设置
+async function saveGeneralSettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const data = {
+        nickname: document.getElementById('nickname').value,
+        gender: document.getElementById('gender').value,
+        birth_date: document.getElementById('birthDate').value,
+        location: document.getElementById('location').value,
+        bio: document.getElementById('bio').value
+    };
+
+    try {
+        const response = await fetch('/api/users/settings/general/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) throw new Error('保存失败');
+
+        showMessage('general', '设置保存成功', 'success');
+    } catch (error) {
+        console.error('保存失败:', error);
+        showMessage('general', '保存失败，请重试', 'error');
+    }
+}
+
+// 上传头像
+async function uploadAvatar(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 检查文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+        showMessage('general', '文件大小不能超过 5MB', 'error');
+        return;
+    }
+
+    const token = localStorage.getItem('accessToken');
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+        const response = await fetch('/api/users/settings/avatar/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('上传失败');
+
+        const data = await response.json();
+        document.getElementById('avatarPreview').innerHTML = `<img src="${data.avatar}" alt="头像">`;
+        showMessage('general', '头像上传成功', 'success');
+    } catch (error) {
+        console.error('上传失败:', error);
+        showMessage('general', '头像上传失败', 'error');
+    }
+}
+
+// 加载隐私设置
+async function loadPrivacySettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/users/settings/privacy/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('加载失败');
+
+        const data = await response.json();
+        document.getElementById('showPhone').checked = !!data.show_phone;
+        document.getElementById('showEmail').checked = !!data.show_email;
+        document.getElementById('showLocation').checked = !!data.show_location;
+        document.getElementById('allowMessages').checked = !!data.allow_messages;
+    } catch (error) {
+        console.error('加载隐私设置失败:', error);
+        showMessage('privacy', '加载隐私设置失败', 'error');
+    }
+}
+
+// 保存隐私设置
+async function savePrivacySettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const payload = {
+        show_phone: document.getElementById('showPhone').checked,
+        show_email: document.getElementById('showEmail').checked,
+        show_location: document.getElementById('showLocation').checked,
+        allow_messages: document.getElementById('allowMessages').checked
+    };
+
+    try {
+        const response = await fetch('/api/users/settings/privacy/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error('保存失败');
+
+        showMessage('privacy', '隐私设置已保存', 'success');
+    } catch (error) {
+        console.error('保存隐私设置失败:', error);
+        showMessage('privacy', '保存隐私设置失败，请重试', 'error');
+    }
+}
+
+
+// 加载通知设置
+async function loadNotificationSettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/users/settings/notification/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error('加载失败');
+
+        const data = await response.json();
+        document.getElementById('emailNotifications').checked = !!data.email_notifications;
+        document.getElementById('smsNotifications').checked = !!data.sms_notifications;
+        document.getElementById('promotionNotifications').checked = !!data.promotion_notifications;
+        document.getElementById('systemNotifications').checked = !!data.system_notifications;
+    } catch (error) {
+        console.error('加载通知设置失败:', error);
+        showMessage('notification', '加载通知设置失败', 'error');
+    }
+}
+
+// 保存通知设置
+async function saveNotificationSettings() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const payload = {
+        email_notifications: document.getElementById('emailNotifications').checked,
+        sms_notifications: document.getElementById('smsNotifications').checked,
+        promotion_notifications: document.getElementById('promotionNotifications').checked,
+        system_notifications: document.getElementById('systemNotifications').checked
+    };
+
+    try {
+        const response = await fetch('/api/users/settings/notification/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error('保存失败');
+
+        showMessage('notification', '通知设置已保存', 'success');
+    } catch (error) {
+        console.error('保存通知设置失败:', error);
+        showMessage('notification', '保存通知设置失败，请重试', 'error');
+    }
+}
+
+
+// 修改密码
+async function changePassword() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    // 确认密码
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showMessage('security', '请填写所有密码字段', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showMessage('security', '新密码和确认密码不一致', 'error');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        showMessage('security', '密码长度至少8位', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/users/change-password/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || '修改失败');
+        }
+
+        showMessage('security', '密码修改成功', 'success');
+        document.getElementById('passwordForm').reset();
+    } catch (error) {
+        console.error('修改密码失败:', error);
+        showMessage('security', error.message || '密码修改失败', 'error');
+    }
+}
+
+// 删除账户
+async function deleteAccount() {
+    const confirmed = confirm('确定要删除账户吗？此操作无法撤销！');
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/users/delete-account/', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('删除失败');
+
+        // 清除token并跳转到首页
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        alert('账户已删除，即将跳转到首页');
+        window.location.href = '/';
+    } catch (error) {
+        console.error('删除账户失败:', error);
+        alert('删除账户失败: ' + error.message);
+    }
+}
+
+// 显示消息
+function showMessage(sectionId, message, type) {
+    const messageElement = document.getElementById(sectionId + 'Message');
+    if (!messageElement) return;
+
+    messageElement.textContent = message;
+    messageElement.className = `message ${type}`;
+
+    // 3秒后自动隐藏
+    setTimeout(() => {
+        messageElement.className = 'message';
+        messageElement.textContent = '';
+    }, 3000);
+}
+</script>
+{% endblock %}

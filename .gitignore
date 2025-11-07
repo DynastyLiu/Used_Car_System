@@ -1,0 +1,105 @@
+# Django项目.gitignore文件
+
+# Python相关
+*.py[cod]
+__pycache__/
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# 单元测试
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# 翻译
+*.mo
+*.pot
+
+# Django相关
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-wal
+
+# 静态文件和媒体文件
+/static/
+/media/
+/collected_static/
+/staticfiles/
+
+# 环境变量
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE相关
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统相关
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# MySQL数据库文件
+*.sql
+*.db
+
+# 调试文件
+debug.log
+error.log
+
+# 图片缓存
+*.jpg.tmp
+*.png.tmp
+*.gif.tmp
+
+# 上传文件夹
+uploads/
+temp/

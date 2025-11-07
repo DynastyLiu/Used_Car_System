@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}联系我们 - 二手车集市{% endblock %}
+
+{% block content %}
+<style>
+    .section-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 35px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #007BFF;
+        text-align: center;
+    }
+    .hero-banner {
+        background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
+        color: white;
+        padding: 80px 40px;
+        text-align: center;
+        border-radius: 8px;
+        margin-bottom: 50px;
+    }
+    .hero-banner h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+    .contact-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto 60px;
+    }
+    .contact-info {
+        background: #f8f9fa;
+        padding: 35px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .contact-item {
+        margin-bottom: 25px;
+    }
+    .contact-item h4 {
+        color: #007BFF;
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .contact-form {
+        background: #f8f9fa;
+        padding: 35px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #007BFF;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-submit:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+    }
+    .faq-section {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .faq-item {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .faq-item:last-child {
+        border-bottom: none;
+    }
+    .faq-item h4 {
+        color: #007BFF;
+        margin-bottom: 12px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .faq-item p {
+        color: #666;
+        line-height: 1.6;
+    }
+    section {
+        margin-bottom: 60px;
+    }
+    @media (max-width: 768px) {
+        .contact-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        .hero-banner {
+            padding: 40px 20px;
+        }
+        .hero-banner h1 {
+            font-size: 32px;
+        }
+    }
+</style>
+
+<section>
+    <div class="hero-banner">
+        <h1>📧 联系我们</h1>
+        <p>我们随时为您提供专业服务，期待随时与我们取得联系</p>
+    </div>
+</section>
+
+<section>
+    <div class="contact-grid">
+        <div>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 0;">📍 联系信息</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <h4>🏠 地址</h4>
+                    <p>北京市朝阳区科技园区23号楼A座<br>邮编：100000<br>中国</p>
+                </div>
+                <div class="contact-item">
+                    <h4>📞 电话</h4>
+                    <p>客服热线：400-800-1234<br>技术支持：010-5555-6666<br>工作时间：周一至周五 9:00-18:00</p>
+                </div>
+                <div class="contact-item">
+                    <h4>📧 邮箱</h4>
+                    <p>info@carhub.com<br>support@carhub.com<br>business@carhub.com</p>
+                </div>
+                <div class="contact-item">
+                    <h4>🕐 工作时间</h4>
+                    <p>周一至周五：9:00-18:00<br>周六：10:00-16:00<br>周日：休息</p>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 0;">✉️ 发送消息</h2>
+            <form class="contact-form">
+                <div class="form-group">
+                    <label for="name">您的姓名 *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">电子邮箱 *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">联系电话</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="subject">主题 *</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">详细内容 *</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">提交消息</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2 class="section-title">❓ 常见问题</h2>
+    <div class="faq-section">
+        <div class="faq-item">
+            <h4>❓ 如何在本平台发布我的车辆？</h4>
+            <p>首先需要创建账户并完成实名认证，然后点击"发布车辆"按钮，填写车辆详细信息、上传照片、设置价格等。我们的专业团队会在24小时内审核并发布您的车辆信息。</p>
+        </div>
+        <div class="faq-item">
+            <h4>❓ 在本平台发布车辆需要收费吗？</h4>
+            <p>我们提供多种发布方案供您选择，可以选择免费发布方案，也可以选择付费方案获得更多曝光力和推广服务。付费方案可以让您的车辆获得更优先的展示位置。</p>
+        </div>
+        <div class="faq-item">
+            <h4>❓ AI智能估价是如何工作的？</h4>
+            <p>我们的AI系统分析市场数据、车辆品牌、车型参数、保养记录等多个维度，结合机器学习算法，为您提供准确的价格建议。同时AI会分析同类型车辆的市场行情，帮助您获得最具竞争力的定价策略。</p>
+        </div>
+        <div class="faq-item">
+            <h4>❓ 平台支持哪些支付方式？</h4>
+            <p>我们支持多种安全的支付方式，包括支付宝转账、微信支付、银行转账、信用卡支付等。所有支付过程都通过加密渠道进行，确保您的资金安全。我们提供三方担保交易服务。</p>
+        </div>
+        <div class="faq-item">
+            <h4>❓ 买家和卖家发生纠纷如何处理？</h4>
+            <p>我们有专业的纠纷处理团队，可以协助买卖双方进行协调。如果争议无法达成一致，我们会依据平台规则和相关法律法规进行处理。我们提供7×24小时客服热线咨询服务。</p>
+        </div>
+        <div class="faq-item">
+            <h4>❓ 如何保证交易的安全性？</h4>
+            <p>我们采用多层安全保障机制，包括身份认证、车辆检测、资金托管等。所有用户都需要通过实名认证，车辆需要经过专业检测，资金在完成交车前由平台第三方监管。确保买卖双方的利益。</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}车辆详情 - 二手车集市{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div id="vehicle-detail-container"></div>
+</div>
+
+<script>
+// 从URL路径中获取车辆ID，例如 /vehicles/123/
+const pathParts = window.location.pathname.split('/').filter(p => p);
+const vehicleId = pathParts[pathParts.length - 1]; // 获取最后一部分作为ID
+
+/**
+ * 记录用户浏览历史
+ * 当用户访问车辆详情页时，自动记录一条浏览记录
+ */
+async function recordBrowsingHistory() {
+    try {
+        // 检查用户是否已登录
+        if (!API.Auth.isAuthenticated()) {
+            console.log('用户未登录，不记录浏览历史');
+            return;
+        }
+
+        const token = API.Auth.getToken();
+        const response = await fetch('/api/users/browsing-history/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                vehicle_id: parseInt(vehicleId)
+            })
+        });
+
+        if (response.ok) {
+            console.log('浏览历史记录成功');
+        } else {
+            console.error('记录浏览历史失败:', response.status);
+        }
+    } catch (error) {
+        console.error('记录浏览历史出错:', error);
+    }
+}
+
+async function loadVehicleDetail() {
+    if (!vehicleId || isNaN(vehicleId)) {
+        document.getElementById('vehicle-detail-container').innerHTML = `
+            <div style="text-align: center; padding: 50px; color: #999;">
+                <p style="font-size: 18px; margin-bottom: 10px;">无效的车辆ID或参数错误</p>
+                <a href="/vehicles/" style="color: #007BFF;">返回车辆列表</a>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        // 获取车辆详情信息
+        const vehicle = await API.VehicleManager.getVehicle(vehicleId);
+        const container = document.getElementById('vehicle-detail-container');
+
+        const htmlContent = `
+            <div class="vehicle-detail-container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 20px;">
+                <div class="vehicle-main-info">
+                    <div class="vehicle-images">
+                        <img src="${vehicle.photos && vehicle.photos.length > 0 ? vehicle.photos[0].image : '/static/images/placeholder.png'}"
+                             style="width: 100%; border-radius: 8px; margin-bottom: 20px; height: 400px; object-fit: cover;">
+                    </div>
+
+                    <div class="vehicle-header" style="margin-bottom: 20px;">
+                        <h1 style="color: #333; margin-bottom: 10px;">${vehicle.brand_name} ${vehicle.model_name} ${vehicle.year}款</h1>
+                        <p style="color: #666; font-size: 16px;">${vehicle.year}年 | ${vehicle.mileage ? vehicle.mileage.toLocaleString() : '未知'}公里 | ${vehicle.color || '未知颜色'}</p>
+                    </div>
+
+                    <div class="vehicle-price" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <h2 style="margin: 0; font-size: 32px;">¥${vehicle.price ? vehicle.price.toLocaleString('zh-CN') : '面议'}</h2>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9;">卖家要价</p>
+                    </div>
+
+                    <div class="vehicle-specs" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <h3 style="margin-top: 0; margin-bottom: 20px; color: #333;">车辆基本信息</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; width: 120px;">品牌型号</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${vehicle.brand_name} ${vehicle.model_name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold;">年份</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${vehicle.year}年</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold;">里程数</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${vehicle.mileage ? vehicle.mileage.toLocaleString() + '公里' : '未知'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold;">颜色</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${vehicle.color || '未知'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold;">车辆状态</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                                    <span class="status-badge" style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                        ${vehicle.status === 'sale' ? '在售' : vehicle.status === 'sold' ? '已售' : '其他'}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="vehicle-description" style="margin-bottom: 30px;">
+                        <h3 style="margin-bottom: 15px; color: #333;">车辆描述</h3>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; line-height: 1.6;">
+                            ${vehicle.description || '暂无详细描述'}
+                        </div>
+                    </div>
+
+                    <div class="ai-description-analysis" id="ai-description-analysis" style="margin-bottom: 30px; display: none;">
+                        <h3 style="margin-bottom: 15px; color: #333;">🤖 AI描述分析</h3>
+                        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                            <div id="ai-analysis-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vehicle-sidebar">
+                    <div class="contact-seller" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="margin-top: 0; margin-bottom: 15px; color: #333;">联系卖家</h3>
+                        <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="contactSeller()">
+                            📧 发送消息
+                        </button>
+                        <button class="btn btn-success" style="width: 100%;" onclick="buyNow()">
+                            🛒 立即购买
+                        </button>
+                    </div>
+
+                    <div class="ai-price-estimate" id="ai-price-estimate" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="margin-top: 0; margin-bottom: 15px; color: #333;">🤖 AI智能估价</h3>
+                        <button class="btn btn-info" style="width: 100%; margin-bottom: 15px;" onclick="getAIPriceEstimate()">
+                            获取AI估价建议
+                        </button>
+                        <div id="ai-price-content" style="display: none;">
+                            <div style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                                <div class="spinner" style="border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                                <p style="margin-top: 10px; color: #666;">AI正在分析...</p>
+                            </div>
+                        </div>
+                        <div id="ai-price-result" style="display: none;"></div>
+                    </div>
+
+                    <div class="ai-chat-assistant" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="margin-top: 0; margin-bottom: 15px; color: #333;">🤖 AI购车助手</h3>
+                        <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="text-align: center; color: #666; padding: 20px;">
+                                🤖 您好！我是AI购车助手，有任何关于车辆的问题都可以问我哦！
+                            </div>
+                        </div>
+                        <div style="display: flex;">
+                            <input type="text" id="chat-input" placeholder="请输入您的问题..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px 0 0 4px; border-right: none;">
+                            <button onclick="sendChatMessage()" style="padding: 8px 15px; background: #007bff; color: white; border: 1px solid #007bff; border-radius: 0 4px 4px 0; cursor: pointer;">
+                                发送
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = htmlContent;
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .status-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .chat-message {
+                margin-bottom: 10px;
+                padding: 8px 12px;
+                border-radius: 8px;
+                max-width: 80%;
+            }
+            .chat-message.user {
+                background: #007bff;
+                color: white;
+                margin-left: auto;
+                text-align: right;
+            }
+            .chat-message.assistant {
+                background: #e9ecef;
+                color: #333;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 自动触发AI描述分析
+        if (vehicle.description && vehicle.description.length > 50) {
+            setTimeout(() => analyzeDescription(vehicle.description), 1000);
+        }
+
+    } catch (error) {
+        console.error('Load vehicle detail error:', error);
+        API.Utils.showAlert('加载车辆详情失败: ' + error.message, 'error');
+    }
+}
+
+async function getAIPriceEstimate() {
+    const contentDiv = document.getElementById('ai-price-content');
+    const resultDiv = document.getElementById('ai-price-result');
+
+    contentDiv.style.display = 'block';
+    resultDiv.style.display = 'none';
+
+    try {
+        const result = await API.AIManager.getPriceEstimate(vehicleId);
+
+        if (result.success) {
+            const estimation = result.price_estimation;
+            contentDiv.style.display = 'none';
+            resultDiv.style.display = 'block';
+
+            resultDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <h4 style="color: #28a745; margin-bottom: 10px;">AI估价建议</h4>
+                    <div style="font-size: 24px; font-weight: bold; color: #007bff; margin-bottom: 10px;">
+                        ¥${estimation.suggested_price ? parseFloat(estimation.suggested_price).toLocaleString('zh-CN') : '分析中...'}
+                    </div>
+                    ${estimation.min_price && estimation.max_price ? `
+                        <div style="color: #666; margin-bottom: 10px;">
+                            建议价格范围: ¥${parseFloat(estimation.min_price).toLocaleString('zh-CN')} - ¥${parseFloat(estimation.max_price).toLocaleString('zh-CN')}
+                        </div>
+                    ` : ''}
+                    <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                        置信度: ${Math.round((estimation.confidence || 0.8) * 100)}%
+                    </div>
+                    ${estimation.analysis ? `
+                        <div style="text-align: left; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 14px; line-height: 1.5;">
+                            <strong>AI分析:</strong><br>
+                            ${estimation.analysis}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else {
+            throw new Error(result.error || '获取估价失败');
+        }
+    } catch (error) {
+        console.error('AI price estimate error:', error);
+        contentDiv.style.display = 'none';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div style="text-align: center; color: #dc3545; padding: 10px;">
+                ⚠️ ${error.message || 'AI估价服务暂时不可用，请稍后再试'}
+            </div>
+        `;
+    }
+}
+
+async function analyzeDescription(description) {
+    try {
+        const result = await API.AIManager.analyzeDescription(description);
+
+        if (result.success) {
+            const analysisDiv = document.getElementById('ai-description-analysis');
+            const contentDiv = document.getElementById('ai-analysis-content');
+
+            analysisDiv.style.display = 'block';
+            contentDiv.innerHTML = `
+                <div style="line-height: 1.6;">${result.analysis}</div>
+            `;
+        }
+    } catch (error) {
+        console.error('Description analysis error:', error);
+    }
+}
+
+let conversationHistory = [];
+
+async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const messagesDiv = document.getElementById('chat-messages');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // 添加用户消息
+    const userMessage = document.createElement('div');
+    userMessage.className = 'chat-message user';
+    userMessage.textContent = message;
+    messagesDiv.appendChild(userMessage);
+
+    input.value = '';
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    // 添加AI回复加载状态
+    const aiMessagePlaceholder = document.createElement('div');
+    aiMessagePlaceholder.className = 'chat-message assistant';
+    aiMessagePlaceholder.innerHTML = '<div class="spinner" style="border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block;"></div> 正在回复...';
+    messagesDiv.appendChild(aiMessagePlaceholder);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    try {
+        const result = await API.AIManager.chatWithAI(message, conversationHistory);
+
+        if (result.success) {
+            conversationHistory = result.conversation_history;
+
+            // 替换加载状态为实际回复
+            aiMessagePlaceholder.innerHTML = result.ai_response;
+        } else {
+            aiMessagePlaceholder.innerHTML = '抱歉，无法理解您的问题，请换种方式提问';
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        aiMessagePlaceholder.innerHTML = '抱歉，发生了网络错误，请稍后重试';
+    }
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function contactSeller() {
+    if (!API.Auth.isAuthenticated()) {
+        API.Utils.showAlert('请先登录后再联系卖家', 'info');
+        setTimeout(() => {
+            window.location.href = '/login/';
+        }, 1000);
+        return;
+    }
+    API.Utils.showAlert('消息功能正在开发中，敬请期待', 'info');
+}
+
+function buyNow() {
+    console.log('=== 立即购买按钮被点击 ===');
+    console.log('API对象:', API);
+    console.log('API.Auth:', API && API.Auth);
+
+    // 检查API和Auth对象是否存在
+    if (!API || !API.Auth) {
+        console.error('API对象或API.Auth不存在');
+        API.Utils.showAlert('系统错误，请刷新页面重试', 'error');
+        return;
+    }
+
+    // 检查认证状态
+    const isAuth = API.Auth.isAuthenticated();
+    const token = API.Auth.getToken();
+
+    console.log('认证状态:', isAuth);
+    console.log('Token存在:', !!token);
+    console.log('Token内容:', token ? token.substring(0, 20) + '...' : 'null');
+
+    if (!isAuth || !token) {
+        console.log('用户未认证，跳转到登录页面');
+        API.Utils.showAlert('请先登录后再购买', 'info');
+        setTimeout(() => {
+            // 跳转到登录页面而不是首页
+            window.location.href = '/login/';
+        }, 1000);
+        return;
+    }
+
+    // 创建购买订单页面跳转
+    const vehicleId = getVehicleIdFromUrl();
+    console.log('获取到的车辆ID:', vehicleId);
+
+    if (!vehicleId) {
+        console.error('无法获取车辆ID');
+        API.Utils.showAlert('无效的车辆ID，请返回车辆列表重试', 'error');
+        return;
+    }
+
+    console.log('跳转到订单创建页面:', `/orders/create/${vehicleId}/`);
+    window.location.href = `/orders/create/${vehicleId}/`;
+}
+
+// 从URL中获取车辆ID
+function getVehicleIdFromUrl() {
+    const pathParts = window.location.pathname.split('/');
+    const vehicleIndex = pathParts.indexOf('vehicles');
+    if (vehicleIndex !== -1 && pathParts[vehicleIndex + 1]) {
+        return pathParts[vehicleIndex + 1];
+    }
+    return null;
+}
+
+// 监听回车键发送消息
+document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && document.activeElement.id === 'chat-input') {
+        sendChatMessage();
+    }
+});
+
+// 页面加载时：1) 加载车辆详情 2) 记录浏览历史
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadVehicleDetail();
+    // 延迟100毫秒后记录浏览历史，确保页面已加载
+    setTimeout(() => {
+        recordBrowsingHistory();
+    }, 100);
+});
+</script>
+{% endblock %}

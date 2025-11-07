@@ -1,0 +1,501 @@
+﻿{% extends "base.html" %}
+
+{% block title %}浏览车辆 - 驭车云驭车云二手车集市{% endblock %}
+
+{% block content %}
+<div class="vehicle-layout">
+    <aside class="vehicle-filters">
+        <h3>🔍 筛选条件</h3>
+
+        <div class="form-group">
+            <label for="brand-filter">品牌</label>
+            <select id="brand-filter" class="form-control">
+                <option value="">所有品牌</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="min-year-filter">最小年份</label>
+            <select id="min-year-filter" class="form-control">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="max-year-filter">最大年份</label>
+            <select id="max-year-filter" class="form-control">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="min-price">最低价格 (¥)</label>
+            <input type="number" id="min-price" class="form-control" placeholder="0" min="0">
+        </div>
+
+        <div class="form-group">
+            <label for="max-price">最高价格 (¥)</label>
+            <input type="number" id="max-price" class="form-control" placeholder="1000000" min="0">
+        </div>
+
+        <button class="btn btn-primary" onclick="applyFilters()">应用筛选</button>
+    </aside>
+
+    <main class="vehicle-content">
+        <h1>🚗 浏览车辆</h1>
+
+        <div class="vehicle-search-bar">
+        <input type="text" id="search-input" placeholder="输入品牌或车型关键字..." aria-label="搜索车辆">
+        <button id="search-button" class="search-button" aria-label="执行搜索">
+            🔍
+        </button>
+    </div>
+
+    <div id="loading-indicator" class="loading" style="display:none;">
+            <p>正在加载车辆，请稍候...</p>
+        </div>
+
+        <div id="vehicles-list" class="vehicle-grid"></div>
+
+        <div id="empty-message" class="empty" style="display:none;">
+            <p>没有找到符合条件的车辆，请调整筛选条件后再试。</p>
+        </div>
+
+        <div id="pagination" class="pagination"></div>
+    </main>
+</div>
+
+<style>
+.vehicle-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 30px;
+}
+
+.vehicle-filters {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 120px;
+    height: fit-content;
+}
+
+.vehicle-filters h3 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #2d3748;
+}
+
+.vehicle-filters .form-group {
+    margin-bottom: 18px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.15);
+}
+
+.vehicle-content h1 {
+    margin-bottom: 24px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.vehicle-search-bar {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.vehicle-search-bar input {
+    width: 100%;
+    padding: 12px 54px 12px 16px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    font-size: 15px;
+}
+
+.vehicle-search-bar .search-button {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #5a67d8 0%, #4c51bf 100%);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-weight: bold;
+}
+
+.vehicle-search-bar .search-button:hover {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 10px 25px rgba(76, 81, 191, 0.25);
+}
+
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+}
+
+.vehicle-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 22px 40px rgba(15, 23, 42, 0.16);
+}
+
+.vehicle-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: #f3f4f6;
+}
+
+.vehicle-card .card-body {
+    padding: 16px 18px;
+    flex: 1;
+}
+
+.vehicle-card .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 10px;
+}
+
+.vehicle-card .card-text {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.vehicle-card .card-footer {
+    padding: 0 18px 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge {
+    border-radius: 30px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.loading,
+.empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    min-width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #edf2f7;
+    color: #4a5568;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pagination button.active {
+    background: #4c51bf;
+    color: #fff;
+}
+
+.pagination button:hover {
+    background: #e2e8f0;
+}
+
+@media (max-width: 980px) {
+    .vehicle-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .vehicle-filters {
+        position: static;
+        order: 2;
+    }
+
+    .vehicle-content {
+        order: 1;
+    }
+}
+</style>
+
+<script>
+let currentPage = 1;
+const itemsPerPage = 12;
+
+function getAuthHeaders() {
+    const token = localStorage.getItem('accessToken');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+async function initializeFilters() {
+    try {
+        const response = await fetch('/api/vehicles/brands/?page_size=1000', {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const brands = data.results || [];
+        const brandFilter = document.getElementById('brand-filter');
+
+        brands.forEach(brand => {
+            const option = document.createElement('option');
+            option.value = brand.id;
+            option.textContent = brand.name;
+            brandFilter.appendChild(option);
+        });
+
+        const currentYear = new Date().getFullYear();
+        const minYearSelect = document.getElementById('min-year-filter');
+        const maxYearSelect = document.getElementById('max-year-filter');
+
+        for (let year = currentYear; year >= 1995; year--) {
+            const optMin = document.createElement('option');
+            optMin.value = year;
+            optMin.textContent = year;
+            minYearSelect.appendChild(optMin);
+
+            const optMax = document.createElement('option');
+            optMax.value = year;
+            optMax.textContent = year;
+            maxYearSelect.appendChild(optMax);
+        }
+    } catch (error) {
+        console.error('初始化筛选器失败:', error);
+    }
+}
+
+function buildQueryParams(page) {
+    const params = {
+        page,
+        page_size: itemsPerPage,
+    };
+
+    const brand = document.getElementById('brand-filter').value;
+    const minYear = document.getElementById('min-year-filter').value;
+    const maxYear = document.getElementById('max-year-filter').value;
+    const minPrice = document.getElementById('min-price').value;
+    const maxPrice = document.getElementById('max-price').value;
+    const search = document.getElementById('search-input').value.trim();
+
+    if (brand) params.brand = brand;
+    if (minYear) params.year_min = minYear;
+    if (maxYear) params.year_max = maxYear;
+    if (minPrice) params.price_min = minPrice;
+    if (maxPrice) params.price_max = maxPrice;
+    if (search) params.search = search;
+
+    return params;
+}
+
+function renderVehicles(vehicles) {
+    const list = document.getElementById('vehicles-list');
+    list.innerHTML = '';
+
+    vehicles.forEach(vehicle => {
+        const card = document.createElement('div');
+        card.className = 'vehicle-card';
+
+        let imageUrl = '/static/images/placeholder.png';
+        if (vehicle.photos && vehicle.photos.length > 0) {
+            const mainPhoto = vehicle.photos.find(photo => photo.is_main) || vehicle.photos[0];
+            if (mainPhoto && mainPhoto.image) {
+                imageUrl = mainPhoto.image;
+            }
+        }
+
+        const priceText = vehicle.price ? `¥${Number(vehicle.price).toLocaleString('zh-CN')}` : '价格面议';
+        const statusClass = vehicle.status === 'listed' ? 'badge-success' : vehicle.status === 'sold' ? 'badge-danger' : 'badge-warning';
+        const statusText = {
+            listed: '在售',
+            sold: '已售',
+            maintenance: '维护中',
+            pending_review: '待审核',
+            delisted: '已下架',
+        }[vehicle.status] || '状态未知';
+
+        card.innerHTML = `
+            <img src="${imageUrl}" alt="${vehicle.brand_name || ''} ${vehicle.model_name || ''}" onerror="this.src='/static/images/placeholder.png'">
+            <div class="card-body">
+                <h3 class="card-title">${vehicle.brand_name || '未知品牌'} ${vehicle.model_name || ''}</h3>
+                <p class="card-text">📅 ${vehicle.year || '年份未知'} | 🛣️ ${(vehicle.mileage || 0).toLocaleString('zh-CN')} 公里</p>
+                <p class="card-text">车身颜色：${vehicle.color || '未填写'}</p>
+                <p class="card-text" style="color:#16a34a;font-weight:700;">${priceText}</p>
+            </div>
+            <div class="card-footer">
+                <span class="badge ${statusClass}">${statusText}</span>
+                <a href="/vehicles/${vehicle.id}/" style="color:#4c51bf;font-weight:600;">查看详情 →</a>
+            </div>
+        `;
+
+        list.appendChild(card);
+    });
+}
+
+function renderPagination(totalCount) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
+    if (totalPages <= 1) {
+        return;
+    }
+
+    for (let page = 1; page <= totalPages; page++) {
+        const button = document.createElement('button');
+        button.textContent = page;
+        if (page === currentPage) {
+            button.classList.add('active');
+        }
+        button.addEventListener('click', () => loadVehicles(page));
+        pagination.appendChild(button);
+    }
+}
+
+async function loadVehicles(page = 1) {
+    const loading = document.getElementById('loading-indicator');
+    const list = document.getElementById('vehicles-list');
+    const empty = document.getElementById('empty-message');
+
+    loading.style.display = 'block';
+    list.innerHTML = '';
+    empty.style.display = 'none';
+
+    try {
+        const params = buildQueryParams(page);
+        const queryString = new URLSearchParams(params).toString();
+        const response = await fetch(`/api/vehicles/?${queryString}`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('加载车辆失败');
+        }
+
+        const data = await response.json();
+        const vehicles = data.results || [];
+
+        if (vehicles.length === 0) {
+            empty.style.display = 'block';
+        } else {
+            renderVehicles(vehicles);
+        }
+
+        currentPage = page;
+        renderPagination(data.count || vehicles.length);
+    } catch (error) {
+        console.error(error);
+        API.Utils?.showAlert?.('加载车辆失败，请稍后重试', 'error');
+        empty.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+    }
+}
+
+function applyFilters() {
+    loadVehicles(1);
+}
+
+function setupSearchInteractions() {
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+
+    // 点击搜索按钮触发搜索
+    searchButton.addEventListener('click', () => {
+        const searchTerm = searchInput.value.trim();
+        console.log('搜索关键词:', searchTerm);
+        loadVehicles(1);
+    });
+
+    // 按回车键触发搜索
+    searchInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+            const searchTerm = searchInput.value.trim();
+            console.log('搜索关键词:', searchTerm);
+            loadVehicles(1);
+        }
+    });
+
+    // 实时搜索功能（可选）
+    searchInput.addEventListener('input', (event) => {
+        const searchTerm = event.target.value.trim();
+        // 如果输入为空，立即加载所有车辆
+        if (searchTerm === '') {
+            loadVehicles(1);
+        }
+    });
+}
+
+(function initVehiclePage() {
+    document.addEventListener('DOMContentLoaded', async () => {
+        await initializeFilters();
+        setupSearchInteractions();
+        loadVehicles(1);
+    });
+})();
+</script>
+{% endblock %}
+
+
+
+

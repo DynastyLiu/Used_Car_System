@@ -1,0 +1,1126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {% now "U" as static_cache_buster %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}二手车集市管理系统{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ static_cache_buster }}">
+    <script>
+        (function() {
+            const candidates = new Set();
+            const scheme = "{{ request.scheme|default:'http' }}";
+            const host = "{{ request.get_host|default:'' }}";
+            const normalizedHost = host || (window.location && window.location.host) || '';
+
+            function pushCandidate(url) {
+                if (!url) return;
+                candidates.add(url.replace(/\/+$/, ''));
+            }
+
+            if (scheme && normalizedHost) {
+                pushCandidate(`${scheme}://${normalizedHost}/api`);
+
+                const hostParts = normalizedHost.split(':');
+                const hostnameOnly = hostParts[0] || normalizedHost;
+                ['5000', '8000'].forEach(port => {
+                    pushCandidate(`${scheme}://${hostnameOnly}:${port}/api`);
+                });
+            }
+
+            pushCandidate('http://127.0.0.1:5000/api');
+            pushCandidate('http://localhost:5000/api');
+            pushCandidate('http://127.0.0.1:8000/api');
+            pushCandidate('http://localhost:8000/api');
+            pushCandidate('/api');
+
+            window.API_BASE_CANDIDATES = Array.from(candidates);
+            window.API_BASE_URL = window.API_BASE_CANDIDATES.length ? window.API_BASE_CANDIDATES[0] : '/api';
+        })();
+    </script>
+    <style>
+        /* 中文字体优化 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', 'SimHei', sans-serif;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 50px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            margin-right: 30px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            flex: 1;
+            flex-wrap: nowrap;
+            overflow: hidden;
+        }
+        .nav-menu li {
+            flex-shrink: 0;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 8px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        .nav-menu a:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .user-menu {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+        .btn-outline:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .btn-primary {
+            background-color: white;
+            color: #007BFF;
+        }
+        .btn-primary:hover {
+            background-color: #f0f0f0;
+        }
+        /* 用户信息容器样式 */
+        .user-info-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+            position: relative;
+        }
+        .user-info-container:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        /* 用户头像样式 */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #007BFF;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        /* 用户名显示样式 */
+        .user-name {
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* 下拉箭头样式 */
+        .dropdown-arrow {
+            color: white;
+            font-size: 12px;
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+        .user-info-container.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        /* 下拉菜单样式 */
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 160px;
+            display: none;
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .user-dropdown-menu.active {
+            display: block;
+        }
+        .user-dropdown-menu a,
+        .user-dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #333;
+            font-size: 13px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .user-dropdown-menu a:last-child,
+        .user-dropdown-menu button:last-child {
+            border-bottom: none;
+        }
+        .user-dropdown-menu a:hover,
+        .user-dropdown-menu button:hover {
+            background: #f5f5f5;
+            color: #007BFF;
+        }
+        footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            margin-top: 60px;
+            padding: 40px 0;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 0 40px;
+            margin-bottom: 30px;
+        }
+        .footer-section h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+        .footer-section a {
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer-section a:hover {
+            color: #3498db;
+        }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        main {
+            min-height: calc(100vh - 200px);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 40px;
+        }
+        @media (max-width: 768px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 10px 20px;
+            }
+            .logo {
+                margin-right: 20px;
+            }
+            .nav-menu {
+                order: 3;
+                flex-basis: 100%;
+                gap: 15px;
+                margin-top: 15px;
+            }
+            .user-menu {
+                gap: 10px;
+            }
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            .footer-content {
+                padding: 0 20px;
+                gap: 20px;
+            }
+            .container {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header id="main-header">
+        <nav class="navbar">
+            <a href="/dashboard/" class="logo">🚗 二手车集市管理系统</a>
+            <ul class="nav-menu">
+                <li><a id="home-link" href="/dashboard/">首页</a></li>
+                <li><a href="/vehicles">车辆列表</a></li>
+                <li><a href="/ai-recommend">AI推荐</a></li>
+                <li><a href="/seller-center/">卖家中心</a></li>
+                <li><a href="/history">浏览历史</a></li>
+                <li><a href="/orders">我的订单</a></li>
+                <li><a href="/about">关于我们</a></li>
+                <li><a href="/contact">联系我们</a></li>
+            </ul>
+            <div class="user-menu" id="user-menu" style="display: none;"></div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>关于我们</h3>
+                <p>二手车集市是一个专业的二手车交易平台，提供真实可靠的二手车信息，帮助用户找到满意的车辆。我们致力于为买卖双方提供最优质的服务，让二手车交易更加透明、便捷和安全。</p>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <ul>
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/vehicles">车辆列表</a></li>
+                    <li><a href="/seller-center">卖家中心</a></li>
+                    <li><a href="/help">帮助中心</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>联系我们</h3>
+                <ul>
+                    <li>电话：010-8008-1234</li>
+                    <li>邮箱：support@carhub.com</li>
+                    <li>地址：北京市朝阳区建国路100号</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>法律声明</h3>
+                <ul>
+                    <li><a href="#">用户协议</a></li>
+                    <li><a href="#">隐私政策</a></li>
+                    <li><a href="#">免责声明</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 二手车集市 | 版权所有</p>
+        </div>
+    </footer>
+
+    <script>
+        // API 全局配置
+        const apiBaseCandidates = (Array.isArray(window.API_BASE_CANDIDATES) && window.API_BASE_CANDIDATES.length)
+            ? window.API_BASE_CANDIDATES.slice()
+            : [window.API_BASE_URL || '/api'];
+
+        function buildEndpoint(base, endpoint) {
+            if (!endpoint) {
+                return base;
+            }
+            if (endpoint.startsWith('http')) {
+                return endpoint;
+            }
+            if (!endpoint.startsWith('/')) {
+                endpoint = `/${endpoint}`;
+            }
+            return `${base}${endpoint}`.replace(/([^:]\/)\/+/g, '$1');
+        }
+
+        async function fetchWithFallback(endpoint, options = {}) {
+            let lastError = null;
+
+            for (let i = 0; i < apiBaseCandidates.length; i += 1) {
+                const base = apiBaseCandidates[i];
+                const url = buildEndpoint(base, endpoint);
+
+                try {
+                    const response = await fetch(url, options);
+
+                    if (!response.ok) {
+                        if ([404, 502, 503].includes(response.status) && i < apiBaseCandidates.length - 1) {
+                            lastError = new Error(`HTTP ${response.status} on ${url}`);
+                            continue;
+                        }
+                        return response;
+                    }
+
+                    if (API.baseURL !== base) {
+                        API.baseURL = base;
+                    }
+                    return response;
+                } catch (error) {
+                    lastError = error;
+                    if (error instanceof TypeError && i < apiBaseCandidates.length - 1) {
+                        console.warn(`API network error for ${url}, trying next candidate...`);
+                        continue;
+                    }
+                    throw error;
+                }
+            }
+
+            if (lastError) {
+                throw lastError;
+            }
+            throw new Error('请求失败');
+        }
+
+        const API = {
+            baseCandidates: apiBaseCandidates,
+            baseURL: apiBaseCandidates[0],
+
+            // 身份认证管理
+            Auth: {
+                getToken() {
+                    return localStorage.getItem('accessToken');
+                },
+
+                setToken(accessToken, refreshToken) {
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
+                },
+
+                clearToken() {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('user_info');
+                },
+
+                isAuthenticated() {
+                    return !!this.getToken();
+                },
+
+                getUserInfo() {
+                    const info = localStorage.getItem('user_info');
+                    return info ? JSON.parse(info) : null;
+                },
+
+                setUserInfo(userInfo) {
+                    localStorage.setItem('user_info', JSON.stringify(userInfo));
+                },
+
+                async register(username, email, phone, password, password2) {
+                    const response = await fetch(`${API.baseURL}/users/register/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username, email, phone, password, password2
+                        })
+                    });
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw error;
+                    }
+                    return await response.json();
+                },
+
+                async login(email, password) {
+                    const response = await fetch(`${API.baseURL}/users/login/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: email,
+                            password: password
+                        })
+                    });
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw error;
+                    }
+                    const data = await response.json();
+                    this.setToken(data.access, data.refresh);
+
+                    // 登录后获取用户信息
+                    try {
+                        const userInfo = await API.UserManager.getCurrentUser();
+                        this.setUserInfo(userInfo);
+                    } catch (e) {
+                        console.error('Failed to fetch user info:', e);
+                    }
+
+                    return data;
+                },
+
+                async logout() {
+                    this.clearToken();
+                }
+            },
+
+            // 工具函数集合
+            Utils: {
+                showAlert(message, type = 'info') {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        padding: 15px 20px;
+                        background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+                        color: white;
+                        border-radius: 4px;
+                        z-index: 10000;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    `;
+                    alertDiv.textContent = message;
+                    document.body.appendChild(alertDiv);
+
+                    setTimeout(() => {
+                        alertDiv.style.opacity = '0';
+                        alertDiv.style.transition = 'opacity 0.3s';
+                        setTimeout(() => alertDiv.remove(), 300);
+                    }, 3000);
+                },
+
+                getAuthHeaders() {
+                    const token = API.Auth.getToken();
+                    return {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    };
+                },
+
+                async request(endpoint, options = {}) {
+                    const headers = options.headers ? { ...options.headers } : this.getAuthHeaders();
+
+                    // 如果是FormData，删除Content-Type让浏览器自动设置
+                    if (options.body instanceof FormData) {
+                        delete headers['Content-Type'];
+                    }
+
+                    const response = await fetchWithFallback(endpoint, {
+                        ...options,
+                        headers
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const errorMessage = errorData.detail || errorData.message || '请求失败';
+                        const error = new Error(errorMessage);
+                        error.status = response.status;
+                        error.data = errorData;
+                        throw error;
+                    }
+
+                    return await response.json();
+                }
+            },
+
+            // 用户管理功能
+            UserManager: {
+                async getCurrentUser() {
+                    const response = await fetch(`${API.baseURL}/users/me/`, {
+                        method: 'GET',
+                        headers: API.Utils.getAuthHeaders()
+                    });
+                    if (!response.ok) throw new Error('Failed to fetch user info');
+                    return await response.json();
+                },
+
+                async updateProfile(data) {
+                    const response = await fetch(`${API.baseURL}/users/me/`, {
+                        method: 'PATCH',
+                        headers: API.Utils.getAuthHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                    if (!response.ok) throw new Error('Failed to update profile');
+                    return await response.json();
+                }
+            },
+
+            // 车辆管理功能
+            VehicleManager: {
+                async listVehicles(filters = {}) {
+                    const params = new URLSearchParams(filters);
+                    const response = await fetch(`${API.baseURL}/vehicles/?${params}`, {
+                        headers: API.Utils.getAuthHeaders()
+                    });
+                    if (!response.ok) throw new Error('Failed to fetch vehicles');
+                    return await response.json();
+                },
+
+                async getVehicle(id) {
+                    const response = await fetch(`${API.baseURL}/vehicles/${id}/`, {
+                        headers: API.Utils.getAuthHeaders()
+                    });
+                    if (!response.ok) throw new Error('Failed to fetch vehicle');
+                    return await response.json();
+                },
+
+                async createVehicle(data) {
+                    const response = await fetch(`${API.baseURL}/vehicles/`, {
+                        method: 'POST',
+                        headers: API.Utils.getAuthHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                    if (!response.ok) throw new Error('Failed to create vehicle');
+                    return await response.json();
+                }
+            },
+
+            // 品牌管理功能
+            BrandManager: {
+                async listBrands() {
+                    const response = await fetch(`${API.baseURL}/vehicles/brands/`, {
+                        headers: API.Utils.getAuthHeaders()
+                    });
+                    if (!response.ok) throw new Error('Failed to fetch brands');
+                    return await response.json();
+                }
+            },
+
+            // AI相关功能
+            AIManager: {
+                async postAI(path, payload = {}) {
+                    const config = {
+                        method: 'POST',
+                        headers: API.Utils.getAuthHeaders(),
+                        body: JSON.stringify(payload)
+                    };
+
+                    const response = await fetchWithFallback(path, config);
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const errorMessage = errorData.detail || errorData.error || 'AI服务请求失败';
+                        throw new Error(errorMessage);
+                    }
+
+                    return await response.json();
+                },
+
+                async getPriceEstimate(vehicleId = null, vehicleData = null) {
+                    const data = vehicleId ? { vehicle_id: vehicleId } : { vehicle_data: vehicleData };
+                    return await this.postAI('/ai/price_estimate/', data);
+                },
+
+                async getVehicleRecommendations(preferences) {
+                    return await this.postAI('/ai/vehicle_recommendation/', { preferences });
+                },
+
+                async analyzeDescription(description) {
+                    return await this.postAI('/ai/description_analysis/', { description });
+                },
+
+                async chatWithAI(message, conversationHistory = []) {
+                    return await this.postAI('/ai/chat_assistant/', {
+                        message,
+                        conversation_history: conversationHistory
+                    });
+                }
+            },
+
+            // 钱包管理功能 - 统一的钱包余额管理系统
+            WalletManager: {
+                // 缓存配置
+                CACHE_KEY: 'walletBalance',
+                FROZEN_KEY: 'walletFrozenBalance',
+                LAST_UPDATED_KEY: 'walletLastUpdated',
+                CACHE_DURATION: 30000, // 30秒缓存
+                PASSWORD_KEY: 'hasPaymentPassword',
+
+                // 获取缓存的钱包信息
+                getCachedWalletInfo() {
+                    try {
+                        const balance = localStorage.getItem(this.CACHE_KEY);
+                        const frozenBalance = localStorage.getItem(this.FROZEN_KEY);
+                        const lastUpdated = localStorage.getItem(this.LAST_UPDATED_KEY);
+                        const hasPassword = localStorage.getItem(this.PASSWORD_KEY);
+
+                        if (balance === null || frozenBalance === null || !lastUpdated) {
+                            return null;
+                        }
+
+                        // 检查缓存是否过期
+                        const now = Date.now();
+                        if (now - parseInt(lastUpdated) > this.CACHE_DURATION) {
+                            return null;
+                        }
+
+                        return {
+                            balance: parseFloat(balance) || 0,
+                            frozenBalance: parseFloat(frozenBalance) || 0,
+                            hasPassword: hasPassword === 'true',
+                            lastUpdated: parseInt(lastUpdated)
+                        };
+                    } catch (error) {
+                        console.error('获取缓存钱包信息失败:', error);
+                        return null;
+                    }
+                },
+
+                // 缓存钱包信息
+                cacheWalletInfo(balance, frozenBalance = 0, hasPassword = false) {
+                    try {
+                        const now = Date.now();
+                        localStorage.setItem(this.CACHE_KEY, balance.toString());
+                        localStorage.setItem(this.FROZEN_KEY, frozenBalance.toString());
+                        localStorage.setItem(this.LAST_UPDATED_KEY, now.toString());
+                        localStorage.setItem(this.PASSWORD_KEY, hasPassword.toString());
+                        console.log('钱包信息已缓存:', { balance, frozenBalance, hasPassword });
+                    } catch (error) {
+                        console.error('缓存钱包信息失败:', error);
+                    }
+                },
+
+                // 清除钱包缓存
+                clearWalletCache() {
+                    try {
+                        localStorage.removeItem(this.CACHE_KEY);
+                        localStorage.removeItem(this.FROZEN_KEY);
+                        localStorage.removeItem(this.LAST_UPDATED_KEY);
+                        localStorage.removeItem(this.PASSWORD_KEY);
+                        console.log('钱包缓存已清除');
+                    } catch (error) {
+                        console.error('清除钱包缓存失败:', error);
+                    }
+                },
+
+                // 从API获取最新的钱包信息
+                async fetchWalletInfo() {
+                    try {
+                        const token = API.Auth.getToken();
+                        if (!token) {
+                            throw new Error('用户未登录');
+                        }
+
+                        const response = await fetchWithFallback('/users/wallet/', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            cache: 'no-store'
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`API请求失败: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        const balance = parseFloat(data.balance) || 0;
+                        const frozenBalance = parseFloat(data.frozen_balance) || 0;
+                        const hasPassword = data.has_payment_password || false;
+
+                        // 缓存钱包信息
+                        this.cacheWalletInfo(balance, frozenBalance, hasPassword);
+
+                        console.log('钱包信息已更新:', { balance, frozenBalance, hasPassword });
+
+                        return {
+                            balance,
+                            frozenBalance,
+                            hasPassword
+                        };
+                    } catch (error) {
+                        console.error('获取钱包信息失败:', error);
+                        throw error;
+                    }
+                },
+
+                // 获取钱包余额（优先使用缓存，如果缓存过期则从API获取）
+                async getWalletBalance() {
+                    const cached = this.getCachedWalletInfo();
+                    if (cached) {
+                        console.log('使用缓存的钱包信息:', cached);
+                        return cached;
+                    }
+
+                    console.log('缓存已过期或不存在，从API获取钱包信息');
+                    return await this.fetchWalletInfo();
+                },
+
+                // 强制刷新钱包余额
+                async refreshWalletBalance() {
+                    console.log('强制刷新钱包余额');
+                    return await this.fetchWalletInfo();
+                },
+
+                // 更新钱包余额（用于充值或消费后）
+                updateWalletBalance(newBalance, frozenBalance = null) {
+                    const cached = this.getCachedWalletInfo() || { hasPassword: false };
+                    const updatedFrozenBalance = frozenBalance !== null ? frozenBalance : cached.frozenBalance;
+
+                    this.cacheWalletInfo(newBalance, updatedFrozenBalance, cached.hasPassword);
+
+                    // 触发自定义事件，通知其他页面余额已更新
+                    window.dispatchEvent(new CustomEvent('walletBalanceUpdated', {
+                        detail: {
+                            balance: newBalance,
+                            frozenBalance: updatedFrozenBalance,
+                            hasPassword: cached.hasPassword
+                        }
+                    }));
+
+                    console.log('钱包余额已更新:', { newBalance, frozenBalance: updatedFrozenBalance });
+                },
+
+                // 初始化钱包余额监听器
+                initWalletListeners() {
+                    // 监听钱包余额更新事件
+                    window.addEventListener('walletBalanceUpdated', (event) => {
+                        console.log('收到钱包余额更新事件:', event.detail);
+                        // 更新页面上所有显示余额的元素
+                        this.updateBalanceDisplay(event.detail);
+                    });
+
+                    // 监听storage变化（跨标签页同步）
+                    window.addEventListener('storage', (event) => {
+                        if (event.key === this.CACHE_KEY || event.key === this.LAST_UPDATED_KEY) {
+                            console.log('检测到其他标签页的余额变化，刷新当前页面');
+                            setTimeout(() => {
+                                this.refreshWalletBalance().then(walletInfo => {
+                                    this.updateBalanceDisplay(walletInfo);
+                                }).catch(error => {
+                                    console.error('同步钱包余额失败:', error);
+                                });
+                            }, 100);
+                        }
+                    });
+
+                    // 设置定期刷新（每30秒）
+                    setInterval(() => {
+                        if (API.Auth.isAuthenticated()) {
+                            this.refreshWalletBalance().then(walletInfo => {
+                                this.updateBalanceDisplay(walletInfo);
+                            }).catch(error => {
+                                console.warn('定期刷新钱包余额失败:', error);
+                            });
+                        }
+                    }, this.CACHE_DURATION);
+
+                    console.log('钱包余额监听器已初始化');
+                },
+
+                // 更新页面上的余额显示
+                updateBalanceDisplay(walletInfo) {
+                    const balanceElements = document.querySelectorAll('[data-wallet-balance]');
+                    const frozenElements = document.querySelectorAll('[data-wallet-frozen]');
+                    const passwordElements = document.querySelectorAll('[data-has-password]');
+
+                    balanceElements.forEach(element => {
+                        element.textContent = `¥${walletInfo.balance.toFixed(2)}`;
+                    });
+
+                    frozenElements.forEach(element => {
+                        element.textContent = `¥${walletInfo.frozenBalance.toFixed(2)}`;
+                    });
+
+                    passwordElements.forEach(element => {
+                        element.textContent = walletInfo.hasPassword ? '已设置' : '未设置';
+                        element.className = walletInfo.hasPassword ? 'password-status password-set' : 'password-status password-not-set';
+                    });
+
+                    // 特殊处理：订单创建页面的钱包描述
+                    const walletDescElements = document.querySelectorAll('#walletDesc');
+                    walletDescElements.forEach(element => {
+                        element.textContent = `钱包可用余额：¥${walletInfo.balance.toFixed(2)}`;
+                    });
+
+                    console.log('页面余额显示已更新');
+                }
+            }
+        };
+
+
+    </script>
+    <script src="{% static 'js/main.js' %}?v={{ static_cache_buster }}"></script>
+    <script>
+        (function() {
+            const userMenu = document.getElementById('user-menu');
+            const homeLink = document.getElementById('home-link');
+            const logoLink = document.querySelector('.logo');
+            let isFetchingProfile = false;
+
+            function isAuthPage() {
+                const path = window.location.pathname.toLowerCase();
+                return path === '/' || path.includes('/login') || path.includes('/register');
+            }
+
+            function getToken() {
+                return localStorage.getItem('accessToken');
+            }
+
+            function clearUserMenu() {
+                if (userMenu) {
+                    userMenu.style.display = 'none';
+                    userMenu.innerHTML = '';
+                }
+            }
+
+            function renderLoading() {
+                if (!userMenu) return;
+                userMenu.style.display = 'flex';
+                userMenu.innerHTML = '<span style="color: #fff; font-size: 13px;">加载中...</span>';
+            }
+
+            function attachDropdownHandlers() {
+                const container = document.getElementById('user-info-container');
+                const menu = document.getElementById('user-dropdown-menu');
+                if (!container || !menu) return;
+
+                const toggleMenu = (event) => {
+                    if (event.target.closest('.user-dropdown-menu')) {
+                        return;
+                    }
+                    event.stopPropagation();
+                    container.classList.toggle('active');
+                    menu.classList.toggle('active');
+                };
+
+                const toggles = container.querySelectorAll('.user-avatar, .user-name, .dropdown-arrow');
+                toggles.forEach(el => el.addEventListener('click', toggleMenu));
+
+                if (window.__userMenuOutsideHandler) {
+                    document.removeEventListener('click', window.__userMenuOutsideHandler);
+                }
+                window.__userMenuOutsideHandler = (event) => {
+                    if (!container.contains(event.target)) {
+                        container.classList.remove('active');
+                        menu.classList.remove('active');
+                    }
+                };
+                document.addEventListener('click', window.__userMenuOutsideHandler);
+
+                const logoutButton = menu.querySelector('.user-dropdown-logout');
+                if (logoutButton) {
+                    logoutButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        confirmLogout();
+                    });
+                }
+            }
+
+            function renderUserMenu(profile) {
+                if (!userMenu) return;
+
+                const username = profile.username || '用户';
+                const avatar = profile.avatar || '';
+                userMenu.style.display = 'flex';
+                userMenu.innerHTML = `
+                    <div class="user-info-container" id="user-info-container">
+                        <div class="user-avatar" id="user-avatar">
+                            ${avatar ? `<img src="${avatar}" alt="${username}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : username.charAt(0).toUpperCase()}
+                        </div>
+                        <span class="user-name" id="user-name">${username}</span>
+                        <span class="dropdown-arrow">&#9662;</span>
+                        <div class="user-dropdown-menu" id="user-dropdown-menu">
+                            <a href="/wallet/">我的钱包</a>
+                            <a href="/profile/">个人中心</a>
+                            <a href="/settings/">账户设置</a>
+                            <button type="button" class="user-dropdown-logout">退出登录</button>
+                        </div>
+                    </div>
+                `;
+
+                attachDropdownHandlers();
+            }
+
+            function buildModal() {
+                const modal = document.createElement('div');
+                modal.id = 'logout-confirm-modal';
+                modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+                modal.innerHTML = `
+                    <div style="background: white; padding: 30px; border-radius: 8px; max-width: 360px; width: 90%; text-align: center;">
+                        <h3 style="margin-bottom: 20px; font-size: 18px; color: #333;">确定要退出登录吗？</h3>
+                        <div style="display: flex; gap: 20px; justify-content: center;">
+                            <button type="button" data-action="confirm" style="padding: 10px 24px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer;">确定</button>
+                            <button type="button" data-action="cancel" style="padding: 10px 24px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+                        </div>
+                    </div>
+                `;
+                return modal;
+            }
+
+            function confirmLogout() {
+                const existing = document.getElementById('logout-confirm-modal');
+                if (existing) existing.remove();
+
+                const modal = buildModal();
+                document.body.appendChild(modal);
+
+                modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+                    modal.remove();
+                    logout();
+                });
+
+                modal.querySelector('[data-action="cancel"]').addEventListener('click', () => {
+                    modal.remove();
+                });
+
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        modal.remove();
+                    }
+                });
+            }
+
+            function logout() {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('rememberMe');
+                localStorage.removeItem('user_info');
+                window.location.href = '/';
+            }
+
+            async function fetchProfile(token) {
+                const response = await fetch('/api/users/profile/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('failed to fetch profile');
+                }
+                return response.json();
+            }
+
+            async function updateNavigation() {
+                const header = document.getElementById('main-header');
+                const token = getToken();
+
+                const targetHome = token ? '/dashboard/' : '/';
+                if (homeLink) {
+                    homeLink.href = targetHome;
+                }
+                if (logoLink) {
+                    logoLink.href = targetHome;
+                }
+
+                if (header) {
+                    header.style.display = isAuthPage() ? 'none' : 'block';
+                }
+
+                // 如果用户已登录但当前在认证页面，自动跳转到仪表盘
+                if (token && isAuthPage()) {
+                    window.location.href = '/dashboard/';
+                    return;
+                }
+
+                if (isAuthPage()) {
+                    clearUserMenu();
+                    return;
+                }
+
+                if (!token) {
+                    clearUserMenu();
+                    return;
+                }
+
+                if (isFetchingProfile) {
+                    return;
+                }
+
+                try {
+                    isFetchingProfile = true;
+                    renderLoading();
+                    const profile = await fetchProfile(token);
+                    renderUserMenu(profile);
+                } catch (error) {
+                    const fallbackName = 'User' + token.slice(0, 6);
+                    console.warn('Failed to load user profile, fallback username will be used', error);
+                    renderUserMenu({ username: fallbackName });
+                } finally {
+                    isFetchingProfile = false;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // 初始化导航
+                updateNavigation();
+
+                // 初始化钱包管理系统
+                if (API && API.WalletManager) {
+                    API.WalletManager.initWalletListeners();
+
+                    // 如果用户已登录，加载钱包信息
+                    if (API.Auth.isAuthenticated()) {
+                        API.WalletManager.getWalletBalance().then(walletInfo => {
+                            API.WalletManager.updateBalanceDisplay(walletInfo);
+                        }).catch(error => {
+                            console.error('初始化钱包信息失败:', error);
+                        });
+                    }
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    updateNavigation();
+
+                    // 页面重新可见时，刷新钱包信息
+                    if (API && API.WalletManager && API.Auth.isAuthenticated()) {
+                        API.WalletManager.refreshWalletBalance().then(walletInfo => {
+                            API.WalletManager.updateBalanceDisplay(walletInfo);
+                        }).catch(error => {
+                            console.warn('页面可见时刷新钱包信息失败:', error);
+                        });
+                    }
+                }
+            });
+
+            setInterval(updateNavigation, 30000);
+
+            window.confirmLogout = confirmLogout;
+            window.logout = logout;
+            window.updateNavigation = updateNavigation;
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

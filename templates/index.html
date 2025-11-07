@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 二手车集市管理系统{% endblock %}
+
+{% block content %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 40px;
+        text-align: center;
+        border-radius: 12px;
+        margin-bottom: 40px;
+    }
+
+    .hero-section h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .hero-section p {
+        font-size: 18px;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .btn-cta {
+        background: #ff6b35;
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .btn-cta:hover {
+        background: #e55a2b;
+        transform: translateY(-2px);
+    }
+
+    .features-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .feature-description {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .recent-vehicles {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 25px;
+        text-align: center;
+        color: #333;
+    }
+
+    .vehicles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .vehicle-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .vehicle-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .vehicle-image {
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .vehicle-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .vehicle-info {
+        padding: 20px;
+    }
+
+    .vehicle-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .vehicle-details {
+        color: #666;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .vehicle-price {
+        font-size: 20px;
+        font-weight: bold;
+        color: #ff6b35;
+    }
+</style>
+
+<!-- 主横幅区域 -->
+<div class="hero-section">
+    <h1>欢迎来到二手车集市</h1>
+    <p>为您提供最安全、透明、便捷的二手车交易服务</p>
+    <a href="/vehicles" class="btn-cta">浏览车辆</a>
+</div>
+
+<!-- 特色功能 -->
+<div class="features-section">
+    <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3 class="feature-title">AI智能估价</h3>
+        <p class="feature-description">采用先进的AI算法，为您提供精准的车辆价格评估和市场分析</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3 class="feature-title">安全保障</h3>
+        <p class="feature-description">严格的身份认证和车辆检测，确保交易安全可靠</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title">快速交易</h3>
+        <p class="feature-description">简化的交易流程，让买卖二手车变得更加便捷高效</p>
+    </div>
+</div>
+
+<!-- 最新车辆 -->
+<div class="recent-vehicles">
+    <h2 class="section-title">最新车辆</h2>
+    <div class="vehicles-grid" id="featuredVehicles">
+        <!-- 车辆卡片将通过JavaScript动态加载 -->
+        <div style="text-align: center; padding: 40px; color: #999;">
+            正在加载车辆信息...
+        </div>
+    </div>
+</div>
+
+<script>
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadFeaturedVehicles();
+});
+
+// 加载推荐车辆
+async function loadFeaturedVehicles() {
+    try {
+        const response = await fetch('/api/vehicles/?limit=6');
+        const vehiclesGrid = document.getElementById('featuredVehicles');
+
+        if (response.ok) {
+            const data = await response.json();
+            const vehicles = data.results || [];
+
+            if (vehicles.length === 0) {
+                vehiclesGrid.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        暂无车辆信息
+                    </div>
+                `;
+                return;
+            }
+
+            vehiclesGrid.innerHTML = vehicles.map(vehicle => `
+                <div class="vehicle-card">
+                    <div class="vehicle-image">
+                        <img src="${vehicle.main_photo || '/static/images/no-car-image.jpg'}"
+                             alt="${vehicle.model_name}">
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="vehicle-title">${vehicle.brand_name} ${vehicle.model_name}</div>
+                        <div class="vehicle-details">
+                            ${vehicle.year}年 | ${vehicle.mileage ? vehicle.mileage.toLocaleString() + 'km' : '未知里程'}
+                        </div>
+                        <div class="vehicle-price">¥${vehicle.price ? vehicle.price.toLocaleString() : '面议'}</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            vehiclesGrid.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ff6b35;">
+                    加载车辆信息失败
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('加载推荐车辆失败:', error);
+        const vehiclesGrid = document.getElementById('featuredVehicles');
+        vehiclesGrid.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ff6b35;">
+                网络错误，请刷新页面重试
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}

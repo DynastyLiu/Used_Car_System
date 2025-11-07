@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(python generate_project.py:*)",
+      "Bash(python generate_complete_project.py:*)",
+      "Bash(python generate_remaining_files.py:*)",
+      "Bash(venvScriptspip install -r requirements.txt --quiet)",
+      "Bash(python -m pip install:*)",
+      "Bash(pip:*)",
+      "Bash(mysql:*)",
+      "Bash(python:*)",
+      "Bash(venvScriptsactivate)",
+      "Bash(.venvScriptsactivate:*)",
+      "Bash(./venv/Scripts/activate:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(awk '{print $9, \"\"\"\"(\"\"\"\" $5 \"\"\"\")\"\"\"\"}')",
+      "Bash(netstat -tln:*)",
+      "Bash(venvScriptspip install -r requirements.txt)",
+      "Bash(./venv/Scripts/pip install:*)",
+      "Bash(./venv/Scripts/python -c \"import django; print(''✓ Django已成功安装''); print(f''版本: {django.VERSION}'')\")",
+      "Bash(xargs ls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

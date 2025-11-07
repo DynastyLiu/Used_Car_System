@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心 - 二手车集市管理系统{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px 12px 0 0;
+        text-align: center;
+        margin-bottom: 0;
+    }
+
+    .profile-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 28px;
+    }
+
+    .profile-content {
+        background: white;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+    }
+
+    .form-section h2 {
+        font-size: 20px;
+        color: #2c3e50;
+        border-bottom: 2px solid #007BFF;
+        padding-bottom: 15px;
+        margin-top: 0;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-row.full {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #007BFF;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-group.readonly input {
+        background: #f8f9fa;
+        color: #666;
+        cursor: not-allowed;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: bold;
+    }
+
+    .btn-primary {
+        background: #007BFF;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+    }
+
+    .loading::after {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007BFF;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        .button-group {
+            flex-direction: column;
+        }
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>个人中心</h1>
+        <p>管理您的个人信息和账户设置</p>
+    </div>
+
+    <div class="profile-content">
+        <div id="alert-container"></div>
+
+        <div id="loading-indicator" class="loading">加载个人信息中...</div>
+
+        <form id="profile-form" style="display: none;">
+            <!-- 基本信息 -->
+            <div class="form-section">
+                <h2>基本信息</h2>
+
+                <div class="form-row">
+                    <div class="form-group readonly">
+                        <label>用户名</label>
+                        <input type="text" id="username" readonly>
+                    </div>
+                    <div class="form-group readonly">
+                        <label>邮箱</label>
+                        <input type="email" id="email" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>昵称</label>
+                        <input type="text" id="nickname" placeholder="请输入您的昵称">
+                    </div>
+                    <div class="form-group">
+                        <label>手机号码</label>
+                        <input type="tel" id="phone" placeholder="请输入您的手机号码">
+                    </div>
+                </div>
+
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>所在地</label>
+                        <input type="text" id="location" placeholder="请输入您所在的地区">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实名认证状态 -->
+            <div class="form-section">
+                <h2>实名认证</h2>
+                <div id="auth-status-container"></div>
+            </div>
+
+            <!-- 店铺信息 (如果是卖家) -->
+            <div class="form-section" id="shop-section" style="display: none;">
+                <h2>店铺信息</h2>
+
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>店铺名称</label>
+                        <input type="text" id="shop_name" placeholder="请输入您的店铺名称">
+                    </div>
+                </div>
+
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>店铺描述</label>
+                        <textarea id="shop_description" placeholder="请输入您的店铺描述"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>店铺电话</label>
+                        <input type="tel" id="shop_phone" placeholder="请输入您的店铺电话">
+                    </div>
+                    <div class="form-group">
+                        <label>店铺地址</label>
+                        <input type="text" id="shop_address" placeholder="请输入您的店铺地址">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 提交 -->
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">保存修改</button>
+                <button type="reset" class="btn btn-secondary">重置</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let profileData = {};
+
+// 显示提示信息
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alert-container');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    alert.style.display = 'block';
+    alertContainer.innerHTML = '';
+    alertContainer.appendChild(alert);
+
+    // 3秒后自动隐藏
+    setTimeout(() => {
+        alert.style.display = 'none';
+    }, 3000);
+}
+
+// 加载个人信息
+async function loadProfileData() {
+    try {
+        const token = localStorage.getItem('accessToken');
+        const [profileResponse, authResponse] = await Promise.all([
+            fetch('/api/users/profile/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }),
+            fetch('/api/users/real-name-auth/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+        ]);
+
+        if (!profileResponse.ok) {
+            showAlert('加载个人信息失败，请稍后重试', 'error');
+            return;
+        }
+
+        profileData = await profileResponse.json();
+
+        // 填充基本信息表单
+        document.getElementById('username').value = profileData.username || '';
+        document.getElementById('email').value = profileData.email || '';
+        document.getElementById('nickname').value = profileData.nickname || '';
+        document.getElementById('phone').value = profileData.phone || '';
+        document.getElementById('location').value = profileData.location || '';
+
+        // 填充店铺信息（如果是卖家）
+        if (profileData.user_type === 'seller' || profileData.profile?.shop_name) {
+            document.getElementById('shop-section').style.display = 'block';
+            document.getElementById('shop_name').value = profileData.profile?.shop_name || '';
+            document.getElementById('shop_description').value = profileData.profile?.shop_description || '';
+            document.getElementById('shop_phone').value = profileData.profile?.shop_phone || '';
+            document.getElementById('shop_address').value = profileData.profile?.shop_address || '';
+        }
+
+        // 填充实名认证状态
+        if (authResponse.ok) {
+            const authData = await authResponse.json();
+            renderAuthStatus(authData);
+        }
+
+        // 隐藏加载指示器并显示表单
+        document.getElementById('loading-indicator').style.display = 'none';
+        document.getElementById('profile-form').style.display = 'block';
+
+    } catch (error) {
+        console.error('加载个人信息失败:', error);
+        showAlert('加载个人信息失败: ' + error.message, 'error');
+    }
+}
+
+// 渲染实名认证状态
+function renderAuthStatus(authData) {
+    const container = document.getElementById('auth-status-container');
+
+    const statusConfig = {
+        'unverified': {
+            icon: 'fas fa-exclamation-triangle text-warning',
+            title: '未认证',
+            description: '建议您进行实名认证',
+            color: 'warning',
+            action: '立即认证'
+        },
+        'pending': {
+            icon: 'fas fa-clock text-info',
+            title: '审核中',
+            description: '您的实名认证正在审核中，请耐心等待',
+            color: 'info',
+            action: null
+        },
+        'verified': {
+            icon: 'fas fa-check-circle text-success',
+            title: '已认证',
+            description: '您的实名认证已经通过审核',
+            color: 'success',
+            action: null
+        },
+        'rejected': {
+            icon: 'fas fa-times-circle text-danger',
+            title: '认证失败',
+            description: '您的实名认证审核未通过，请重新提交',
+            color: 'danger',
+            action: '重新认证'
+        }
+    };
+
+    const config = statusConfig[authData.real_name_auth_status] || statusConfig['unverified'];
+
+    let authHtml = `
+        <div class="alert alert-${config.color} d-flex align-items-center">
+            <i class="${config.icon} fa-2x me-3"></i>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">${config.title}</h6>
+                <p class="mb-0">${config.description}</p>
+                ${authData.id_number ? `<p class="mb-0 mt-2"><strong>认证身份证号</strong> ${authData.id_number.replace(/(\d{6})\d{8}(\d{4})/, '$1********$2')}</p>` : ''}
+            </div>
+            ${config.action ? `<button class="btn btn-sm btn-primary" onclick="window.location.href='/auth/verification/'">${config.action}</button>` : ''}
+        </div>
+    `;
+
+    container.innerHTML = authHtml;
+}
+
+// 提交表单
+document.getElementById('profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const updateData = {
+        nickname: document.getElementById('nickname').value,
+        phone: document.getElementById('phone').value,
+        location: document.getElementById('location').value,
+    };
+
+    try {
+        const response = await fetch('/api/users/profile/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        if (response.ok) {
+            showAlert('个人信息保存成功', 'success');
+            // 重新加载数据
+            loadProfileData();
+        } else {
+            const error = await response.json();
+            showAlert('保存失败: ' + (error.detail || error.error || '未知错误'), 'error');
+        }
+    } catch (error) {
+        console.error('提交表单失败:', error);
+        showAlert('提交失败: ' + error.message, 'error');
+    }
+});
+
+// 页面加载时自动加载
+document.addEventListener('DOMContentLoaded', loadProfileData);
+</script>
+
+{% endblock %}

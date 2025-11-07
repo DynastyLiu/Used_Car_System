@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\" -u root -p123456 -e \"USE used_car_system; UPDATE vehicles SET status=''available'' WHERE id=8 LIMIT 1;\")",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\" -u root -p123456 -e \"USE used_car_system; UPDATE vehicles SET status=''available'' WHERE id=7 LIMIT 1;\")",
+      "Bash(pip install:*)",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\":*)",
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "Bash(python:*)",
+      "Bash(del:*)",
+      "Bash(nul)",
+      "Bash(findstr:*)",
+      "Bash(tree:*)",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\" -u root -p123456 -e \"USE used_car_system; SELECT id, username, email, is_active FROM auth_user LIMIT 5;\")",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\" -u root -p123456 -e \"USE used_car_system; SHOW TABLES LIKE ''%user%'';\")",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\" -u root -p123456 -e \"USE used_car_system; SELECT id, username, email, is_active FROM users LIMIT 5;\")",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql\" -u root -p123456 -e \"USE used_car_system; SELECT id, status, review_status FROM vehicles WHERE id=6 LIMIT 1;\")",
+      "Bash(curl:*)",
+      "Bash(for f in add_seller_functions.py check_names.py check_template_render.py count_fffd.py create_brand_placeholders.py create_placeholder_images.py create_sample_data.py debug_js_vars.py detect_name.py detect_old_name.py diagnose_frontend.py download_real_cars.py download_real_vehicle_images.py download_vehicle_images.py download_vehicle_images_auto.py find_old_name.py find_questionable.py fix_image_paths.py fix_logout.py fix_navigation.py fix_phone_duplicates.py force_navigation_fix.py generate_seller_pages.py get_token.py inspect_chars.py inspect_encoding.py inspect_head.py inspect_head2.py inspect_line.py inspect_line_bytes.py inspect_login_block.py inspect_login_strings.py inspect_register.py inspect_register_success.py inspect_segment.py inspect_vehicle_title.py read_logo.py replace_all.py simple_navigation_fix.py update_seller.py)",
+      "Bash(do rm -f \"$f\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(for f in AUDIT_SUMMARY.txt COMPLETE_FILE_LIST.md COMPREHENSIVE_AUDIT_REPORT.md DATABASE_FILES_AUDIT.md DATABASE_FILES_AUDIT_REPORT.html DATABASE_FILES_LIST.csv DATABASE_FILES_LIST.txt EXECUTIVE_SUMMARY.md GENERATED_SQL_FILES_LIST.md MYSQL_DATA_FILES_AUDIT.md MYSQL_DATA_FILES_LIST.txt QUICK_SUMMARY_CREATE_ORDER_FIX.txt README_AUDIT_COMPLETE.md REGISTRATION_FIX_REPORT.md SELLER_CENTER_ANALYSIS_AND_SOLUTION.md SETUP_GUIDE.md SOLUTION_SUMMARY.md SQL_FILES_AUDIT_REPORT.md SYSTEM_ARCHITECTURE.md VEHICLE_LIST_DIAGNOSIS_AND_SOLUTION.md CREATE_ORDER_FIX_COMPLETE.md)",
+      "Bash(while read f)",
+      "Bash(git init:*)",
+      "Bash(.gitignore)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

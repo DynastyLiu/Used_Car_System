@@ -1,0 +1,581 @@
+{% extends "base.html" %}
+
+{% block title %}用户注册登录页面 - 二手车集市{% endblock %}
+
+{% block content %}
+<style>
+    .landing-wrapper {
+        min-height: calc(100vh - 140px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 960px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .auth-card__left {
+        padding: 50px 40px;
+        color: #fff;
+        background: linear-gradient(135deg, #5a67d8 0%, #4c51bf 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 24px;
+    }
+
+    .auth-card__title {
+        font-size: 42px;
+        font-weight: 700;
+    }
+
+    .auth-card__subtitle {
+        font-size: 18px;
+        line-height: 1.6;
+        opacity: 0.9;
+    }
+
+    .auth-card__features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+    }
+
+    .auth-card__features li {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 16px;
+        opacity: 0.95;
+    }
+
+    .auth-card__features span {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .auth-card__right {
+        padding: 40px 45px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .auth-tabs {
+        display: flex;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 30px;
+    }
+
+    .auth-tab {
+        flex: 1;
+        padding: 14px;
+        text-align: center;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        background: none;
+        border: none;
+    }
+
+    .auth-tab.active {
+        color: #4c51bf;
+        border-bottom-color: #4c51bf;
+    }
+
+    .auth-form {
+        display: none;
+        animation: fadeIn 0.25s ease;
+    }
+
+    .auth-form.active {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4c51bf;
+        box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.12);
+    }
+
+    .error-message,
+    .success-message {
+        display: none;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
+
+    .error-message {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    .success-message {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .field-error {
+        color: #dc2626;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(135deg, #5a67d8 0%, #4c51bf 100%);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(76, 81, 191, 0.25);
+    }
+
+    .form-footer {
+        text-align: center;
+        margin-top: 18px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .form-footer a {
+        color: #4c51bf;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+        .auth-card {
+            grid-template-columns: 1fr;
+        }
+        .auth-card__left {
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="landing-wrapper">
+    <div class="auth-card">
+        <div class="auth-card__left">
+            <div>
+                <div class="auth-card__title">二手车集市</div>
+                <div class="auth-card__subtitle">AI 智能评估平台，为您提供安全、透明的二手车交易体验，让每一辆车都物有所值。</div>
+            </div>
+            <ul class="auth-card__features">
+                <li><span>✓</span> AI智能价格评估系统</li>
+                <li><span>✓</span> 严格车辆检测认证</li>
+                <li><span>✓</span> 专业质量保障服务</li>
+                <li><span>✓</span> 7x24 客服支持保障</li>
+            </ul>
+        </div>
+        <div class="auth-card__right">
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">登录</button>
+                <button class="auth-tab" data-tab="register">注册</button>
+                <button class="auth-tab" data-tab="forgot">忘记密码</button>
+            </div>
+
+            <form id="login-form" class="auth-form active">
+                <div class="error-message" id="login-error"></div>
+                <div class="success-message" id="login-success"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="login-username">用户名 / 邮箱 / 手机号</label>
+                    <input type="text" class="form-control" id="login-username" name="username" autocomplete="username">
+                    <div class="field-error" id="login-username-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="login-password">密码</label>
+                    <input type="password" class="form-control" id="login-password" name="password" autocomplete="current-password">
+                    <div class="field-error" id="login-password-error"></div>
+                </div>
+
+                <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+                    <label style="display:flex;align-items:center;gap:8px;color:#6b7280;font-size:14px;cursor:pointer;">
+                        <input type="checkbox" id="remember-me">
+                        记住我
+                    </label>
+                    <a href="#" onclick="switchTab('forgot'); return false;" style="color:#4c51bf;font-size:14px;">忘记密码？</a>
+                </div>
+
+                <button type="submit" class="btn-primary">登录</button>
+
+                <div class="form-footer">
+                    还没有账号？ <a href="#" onclick="switchTab('register'); return false;">立即注册</a>
+                </div>
+            </form>
+
+            <form id="register-form" class="auth-form">
+                <div class="error-message" id="register-error"></div>
+                <div class="success-message" id="register-success"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="register-username">用户名</label>
+                    <input type="text" class="form-control" id="register-username" name="username" autocomplete="off">
+                    <div class="field-error" id="register-username-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="register-email">邮箱</label>
+                    <input type="email" class="form-control" id="register-email" name="email" autocomplete="email">
+                    <div class="field-error" id="register-email-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="register-password">密码</label>
+                    <input type="password" class="form-control" id="register-password" name="password" autocomplete="new-password">
+                    <div class="field-error" id="register-password-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="register-confirm-password">确认密码</label>
+                    <input type="password" class="form-control" id="register-confirm-password" name="confirm_password" autocomplete="new-password">
+                    <div class="field-error" id="register-confirm-password-error"></div>
+                </div>
+
+                <button type="submit" class="btn-primary">立即注册</button>
+
+                <div class="form-footer">
+                    已有账号？<a href="#" onclick="switchTab('login'); return false;">立即登录</a>
+                </div>
+            </form>
+
+            <form id="forgot-form" class="auth-form">
+                <div class="error-message" id="forgot-error"></div>
+                <div class="success-message" id="forgot-success"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="forgot-username">用户名</label>
+                    <input type="text" class="form-control" id="forgot-username" name="username" autocomplete="off">
+                    <div class="field-error" id="forgot-username-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="forgot-new-password">新密码</label>
+                    <input type="password" class="form-control" id="forgot-new-password" name="new_password" autocomplete="new-password">
+                    <div class="field-error" id="forgot-new-password-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="forgot-confirm-password">确认新密码</label>
+                    <input type="password" class="form-control" id="forgot-confirm-password" name="confirm_new_password" autocomplete="new-password">
+                    <div class="field-error" id="forgot-confirm-password-error"></div>
+                </div>
+
+                <button type="submit" class="btn-primary">重置密码</button>
+
+                <div class="form-footer">
+                    想起密码了？<a href="#" onclick="switchTab('login'); return false;">立即登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const AUTH_API_BASE = (() => {
+    const candidates = Array.isArray(window.API_BASE_CANDIDATES) && window.API_BASE_CANDIDATES.length
+        ? window.API_BASE_CANDIDATES
+        : [`${window.location.origin.replace(/\/$/, '')}/api`];
+    const base = candidates[0].replace(/\/$/, '');
+    return `${base}/users`;
+})();
+// ==================== 切换标签页 ====================
+function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+
+    const tabOrder = ['login', 'register', 'forgot'];
+    const targetIndex = tabOrder.indexOf(tab);
+    if (targetIndex === -1) return;
+
+    document.querySelectorAll('.auth-tab')[targetIndex].classList.add('active');
+    document.getElementById(`${tab}-form`).classList.add('active');
+
+    document.querySelectorAll('.error-message, .success-message').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+    });
+}
+
+function showMessage(formId, message, type = 'error') {
+    const errorEl = document.getElementById(`${formId}-error`);
+    const successEl = document.getElementById(`${formId}-success`);
+
+    if (type === 'error') {
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+        if (successEl) successEl.style.display = 'none';
+    } else {
+        if (successEl) {
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+        }
+        if (errorEl) errorEl.style.display = 'none';
+    }
+}
+
+function showFieldError(field, message) {
+    const el = document.getElementById(`${field}-error`);
+    if (el) {
+        el.textContent = message || '';
+    }
+}
+
+function validateUsername(value, fieldPrefix) {
+    if (!value || value.trim().length < 3) {
+        showFieldError(`${fieldPrefix}-username`, '用户名至少需要3个字符');
+        return false;
+    }
+    showFieldError(`${fieldPrefix}-username`, '');
+    return true;
+}
+
+function validatePassword(value, fieldPrefix) {
+    if (!value || value.length < 8) {
+        showFieldError(`${fieldPrefix}-password`, '密码至少需要8个字符');
+        return false;
+    }
+    showFieldError(`${fieldPrefix}-password`, '');
+    return true;
+}
+
+// ==================== 登录 ====================
+document.getElementById('login-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const rememberMe = document.getElementById('remember-me').checked;
+
+    if (!validateUsername(username, 'login') || !validatePassword(password, 'login')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${AUTH_API_BASE}/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            if (result.access) {
+                localStorage.setItem('accessToken', result.access);
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                }
+            }
+            if (result.refresh) {
+                localStorage.setItem('refreshToken', result.refresh);
+            }
+
+            showMessage('login', '登录成功！正在跳转到控制台...', 'success');
+            setTimeout(() => {
+                window.location.href = '/dashboard/';
+            }, 1000);
+        } else {
+            const errorMessage = result.detail || (result.non_field_errors && result.non_field_errors[0]) || '登录失败，请检查用户名和密码是否正确';
+            showMessage('login', errorMessage);
+        }
+    } catch (error) {
+        showMessage('login', '网络错误，请稍后重试');
+    }
+});
+
+// ==================== 注册 ====================
+document.getElementById('register-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById('register-username').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+
+    if (!validateUsername(username, 'register') || !validatePassword(password, 'register')) {
+        return;
+    }
+    if (password !== confirmPassword) {
+        showFieldError('register-confirm-password', '两次输入的密码必须一致');
+        return;
+    }
+    showFieldError('register-confirm-password', '');
+
+    try {
+        const requestData = {
+            username,
+            email,
+            password,
+            password2: confirmPassword
+        };
+
+        // 只有当电话号码不为空时才添加到请求中
+        // 这样可以避免发送空字符串导致的唯一键冲突
+        const phone = document.getElementById('register-phone')?.value?.trim();
+        if (phone) {
+            requestData.phone = phone;
+        }
+
+        const response = await fetch(`${AUTH_API_BASE}/register/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            const errorMsg = result.detail ||
+                (Array.isArray(result.username) && result.username[0]) ||
+                (Array.isArray(result.email) && result.email[0]) ||
+                (Array.isArray(result.password) && result.password[0]) ||
+                '注册失败，请检查输入信息是否正确';
+            showMessage('register', errorMsg);
+            return;
+        }
+
+        showMessage('register', '注册成功！正在自动登录...', 'success');
+
+        // 自动登录
+        try {
+            const loginResp = await fetch(`${AUTH_API_BASE}/login/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const loginResult = await loginResp.json();
+
+            if (loginResp.ok) {
+                if (loginResult.access) localStorage.setItem('accessToken', loginResult.access);
+                if (loginResult.refresh) localStorage.setItem('refreshToken', loginResult.refresh);
+                setTimeout(() => window.location.href = '/dashboard/', 1000);
+            } else {
+                showMessage('register', '注册成功但自动登录失败，请手动登录');
+                setTimeout(() => switchTab('login'), 1500);
+            }
+        } catch (err) {
+            showMessage('register', '注册成功但自动登录失败，请手动登录');
+            setTimeout(() => switchTab('login'), 1500);
+        }
+    } catch (error) {
+        showMessage('register', '网络错误，请稍后重试');
+    }
+});
+
+// ==================== 忘记密码 ====================
+document.getElementById('forgot-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById('forgot-username').value.trim();
+    const newPassword = document.getElementById('forgot-new-password').value;
+    const confirmPassword = document.getElementById('forgot-confirm-password').value;
+
+    if (!validateUsername(username, 'forgot') || !validatePassword(newPassword, 'forgot')) {
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        showFieldError('forgot-confirm-password', '两次输入的密码必须一致');
+        return;
+    }
+    showFieldError('forgot-confirm-password', '');
+
+    try {
+        const userResp = await fetch(`${AUTH_API_BASE}/username/${encodeURIComponent(username)}/`);
+        if (!userResp.ok) {
+            showMessage('forgot', '用户名不存在');
+            return;
+        }
+        const userInfo = await userResp.json();
+        const userId = userInfo.id;
+
+        const response = await fetch(`${AUTH_API_BASE}/${userId}/change_password/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+
+        if (response.ok) {
+            showMessage('forgot', '密码重置成功！请使用新密码登录', 'success');
+            setTimeout(() => switchTab('login'), 1500);
+        } else {
+            const result = await response.json();
+            showMessage('forgot', result.detail || '密码重置失败，请稍后重试');
+        }
+    } catch (error) {
+        showMessage('forgot', '网络错误，请稍后重试');
+    }
+});
+
+// 记住登录状态检查
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('rememberMe') === 'true') {
+        document.getElementById('remember-me').checked = true;
+    }
+});
+</script>
+{% endblock %}
